@@ -1,83 +1,88 @@
-\thispagestyle{empty}
+﻿\thispagestyle{empty}
 \changepage{}{}{}{-1.5cm}{}{2cm}{}{}{}
 ![The Little MongoDB Book, By Karl Seguin](title.png)\
 
 \clearpage
 \changepage{}{}{}{1.5cm}{}{-2cm}{}{}{}
 
-## About This Book ##
+## 关于本书 ##
 
-### License ###
-The Little MongoDB Book book is licensed under the Attribution-NonCommercial 3.0 Unported license. **You should not have paid for this book.**
+### 许可证 ###
+这本书，MongoDB小手册，基于Attribution-NonCommercial 3.0 Unported license发布。**您不需要为本书付钱。**
 
-You are basically free to copy, distribute, modify or display the book. However, I ask that you always attribute the book to me, Karl Seguin and do not use it for commercial purposes.
+您有权复制、分发、修改或展示本书。但请认可本书的作者是Karl Seguin，也请勿将其用于任何商业用途。
 
-You can see the full text of the license at:
+您可以在以下链接查看该许可证的全文：
 
 <http://creativecommons.org/licenses/by-nc/3.0/legalcode>
 
-### About The Author ###
-Karl Seguin is a developer with experience across various fields and technologies. He's an expert .NET and Ruby developer.  He's a semi-active contributor to OSS projects, a technical writer and an occasional speaker. With respect to MongoDB, he was a core contributor to the C# MongoDB library NoRM, wrote the interactive tutorial [mongly](http://mongly.com) as well as the [Mongo Web Admin](https://github.com/karlseguin/Mongo-Web-Admin). His free service for casual game developers, [mogade.com](http://mogade.com/), is powered by MongoDB.
+### 关于作者 ###
+Karl Seguin是一位在多个技术领域有着丰富经验的研发人员，精通.NET以及Ruby。作为技术文档撰写人，他有时还会参与OSS项目的工作或做演讲。在MongoDB方面，他曾是C# MongoDB library NoRM的核心开发人员，开发了互动教程[mongly](http://mongly.com)以及[Mongo Web Admin](https://github.com/karlseguin/Mongo-Web-Admin)。他还用MongoDB开发了[mogade.com](http://mogade.com/)为业余游戏开发者提供免费服务。
 
-Karl has since written [The Little Redis Book](http://openmymind.net/2012/1/23/The-Little-Redis-Book/)
+Karl还著有[The Little Redis Book](http://openmymind.net/2012/1/23/The-Little-Redis-Book/)。
 
-His blog can be found at <http://openmymind.net>, and he tweets via [@karlseguin](http://twitter.com/karlseguin)
+他的博客<http://openmymind.net>，推特账号是[@karlseguin](http://twitter.com/karlseguin)。
 
-### With Thanks To ###
-A special thanks to [Perry Neal](http://twitter.com/perryneal) for lending me his eyes, mind and passion. You provided me with invaluable help. Thank you.
+### 致谢 ###
+[Perry Neal](http://twitter.com/perryneal)，谢谢你给我无法衡量的帮助，谢谢你锐利的眼光、独到的思路以及无比的热情。非常感谢。
 
-### Latest Version ###
-The latest source of this book is available at:
+### 最新版本 ###
+本书的最新版本可以在下面的链接找到：
 
 <http://github.com/karlseguin/the-little-mongodb-book>.
 
-\clearpage
-
-## Introduction ##
- > It's not my fault the chapters are short, MongoDB is just easy to learn.
-
-It is often said that technology moves at a blazing pace. It's true that there is an ever growing list of new technologies and techniques being released. However, I've long been of the opinion that the fundamental technologies used by programmers move at a rather slow pace. One could spend years   learning little yet remain relevant. What is striking though is the speed at which established technologies get replaced. Seemingly over-night, long established technologies find themselves threatened by shifts in developer focus.
-
-Nothing could be more representative of this sudden shift than the progress of NoSQL technologies against well-established relational databases. It almost seems like one day the web was being driven by a few RDBMS' and the next, five or so NoSQL solutions had established themselves as worthy solutions.
-
-Even though these transitions seem to happen overnight, the reality is that they can take years to become accepted practice. The initial enthusiasm is driven by a relatively small set of developers and companies. Solutions are refined, lessons learned and seeing that a new technology is here to stay, others slowly try it for themselves. Again, this is particularly true in the case of NoSQL where many solutions aren't replacements for more traditional storage solutions, but rather address a specific need in addition to what one might get from traditional offerings.
-
-Having said all of that, the first thing we ought to do is explain what is meant by NoSQL. It's a broad term that means different things to different people. Personally, I use it very broadly to mean a system that plays a part in the storage of data. Put another way, NoSQL (again, for me), is the belief that your persistence layer isn't necessarily the responsibility of a single system. Where relational database vendors have historically tried to position their software as a one-size-fits-all solution, NoSQL leans towards smaller units of responsibility where the best tool for a given job can be leveraged. So, your NoSQL stack might still leverage a relational database, say MySQL, but it'll also contain Redis as a persistence lookup for specific parts of the system as well as Hadoop for your intensive data processing. Put simply, NoSQL is about being open and aware of alternative, existing and additional patterns and tools for managing your data.
-
-You might be wondering where MongoDB fits into all of this. As a document-oriented database, Mongo is a more generalized NoSQL solution. It should be viewed as an alternative to relational databases. Like relational databases, it too can benefit from being paired with some of the more specialized NoSQL solutions. MongoDB has advantages and drawbacks, which we'll cover in later parts of this book.
-
-As you may have noticed, we use the terms MongoDB and Mongo interchangeably.
-
-## Getting Started ##
-Most of this book will focus on core MongoDB functionality. We'll therefore rely on the MongoDB shell. While the shell is useful to learn as well as being a useful administrative tool, your code will use a MongoDB driver.
-
-This does bring up the first thing you should know about MongoDB: its drivers. MongoDB has a [number of official drivers](http://www.mongodb.org/display/DOCS/Drivers) for various languages. These drivers can be thought of as the various database drivers you are probably already familiar with. On top of these drivers, the development community has built more language/framework-specific libraries. For example, [NoRM](https://github.com/atheken/NoRM) is a C# library which implements LINQ, and [MongoMapper](https://github.com/jnunemaker/mongomapper) is a Ruby library which is ActiveRecord-friendly. Whether you choose to program directly against the core MongoDB drivers or some higher-level library is up to you. I point this out only because many people new to MongoDB are confused as to why there are both official drivers and community libraries - the former generally focuses on core communication/connectivity with MongoDB and the latter with more language and framework specific implementations.
-
-As you read through this, I encourage you to play with MongoDB to replicate what I demonstrate as well as to explore questions that might come up on your own. It's easy to get up and running with MongoDB, so let's take a few minutes now to set things up.
-
-1. Head over to the [official download page](http://www.mongodb.org/downloads) and grab the binaries from the first row (the recommended stable version) for your operating system of choice. For development purposes, you can pick either 32-bit or 64-bit.
-
-2. Extract the archive (wherever you want) and navigate to the `bin` subfolder. Don't execute anything just yet, but know that `mongod` is the server process and `mongo` is the client shell - these are the two executables we'll be spending most of our time with.
-
-3. Create a new text file in the `bin` subfolder named `mongodb.config`
-
-4. Add a single line to your mongodb.config: `dbpath=PATH_TO_WHERE_YOU_WANT_TO_STORE_YOUR_DATABASE_FILES`. For example, on Windows you might do `dbpath=c:\mongodb\data` and on Linux you might do `dbpath=/etc/mongodb/data`.
-
-5. Make sure the `dbpath` you specified exists
-
-6. Launch mongod with the `--config /path/to/your/mongodb.config` parameter.
-
-As an example for Windows users, if you extracted the downloaded file to `c:\mongodb\` and you created `c:\mongodb\data\` then within `c:\mongodb\bin\mongodb.config` you would specify `dbpath=c:\mongodb\data\`. You could then launch `mongod` from a command prompt via `c:\mongodb\bin\mongod --config c:\mongodb\bin\mongodb.config`.
-
-Feel free to add the `bin` folder to your path to make all of this less verbose. MacOSX and Linux users can follow almost identical directions. The only thing you should have to change are the paths.
-
-Hopefully you now have MonogDB up and running. If you get an error, read the output carefully - the server is quite good at explaining what's wrong.
-
-You can now launch `mongo` (without the *d*) which will connect a shell to your running server. Try entering `db.version()` to make sure everything's working as it should. Hopefully you'll see the version number you installed.
+### 关于本书的中文版本 ###
+本书的中文版由[justinyhuang](http://justinyhuang.com)完成。最新版本在xxxxxxxx。译文的纰漏欢迎告知<justin.y.huang@live.com>或直接提交github。
 
 \clearpage
 
-## Chapter 1 - The Basics ##
+## 简介 ##
+ > 本章很短，但不是我的错，MongoDB就是那么简单易学。
+
+人们总是说科技的发展风驰电掣。确实，一直以来都不断有新的技术涌现出来。但是我却一直坚持认为程序员所用的基本技术的发展相对而言就缓慢很多。您可以很多年不学习什么但还是可以混过去。让人瞩目的是业已成熟的技术被替代的速度。仿佛一夜间，那些长期以来业已成熟的技术忽然就失去了开发者的关注，昔日地位岌岌可危。
+
+NoSQL逐步攻陷了传统关系数据库的领地，就是这种急剧转变最好的例子。仿佛就在昨天所有的网页还是由一些RDBMS驱动的，而一早起来就已经有大约5种NoSQL的方案证明了他们都是有价值的解决方案。
+
+虽然这些转变看起来是一夜间就发生的，事实却是这些新生的技术历经多年才被接受并应用于实践。一开始先是由一小部分开发者或者企业推动，然后逐步吸取教训，改善方案并见证新技术地位的确立。其他的跟随者之后也慢慢地开始了尝试。对于NoSQL来说也是一样。很多新方案的出现都不是为了去代替更加传统的存储方案，而是为了填补后者所能满足需求之外的一些空白。
+
+说了那么多，在这里我们首先要做的是弄清楚什么是NoSQL。这是一个很宽泛的概念，不同的人有不同的解读。我个人用NoSQL来泛指参与数据存储的系统。换句话说，NoSQL（还是我个人的意见），是一种观念，这种观念认为your persistence layer isn't necessarily the responsibility of a single system。相比之下，关系数据库的缔造者一开始就力图把他们的软件当作通用解决方案。NoSQL则更倾向于负责系统中的一小部分功能：限定了部分功能，便可以使用最适合的工具。因此，您以后的NoSQL架构中依旧有可能利用到关系数据库，比如说MySQL，而与此同时还会用Redis完成系统特定数据的持久化查询（？？），还会用Hadoop进行大量的数据处理。简而言之，NoSQL就是保持开放和警醒，利用已有的可用的工具和方法去管理您的数据。
+
+您也许会想，MongoDB怎么能搞定那么多？作为一个面向文档的数据库，Mongo是一个更加通用的NoSQL方案。可以认为它是关系数据库的一个替代方案。和关系数据库一样，Mongo也可以和其它更细化的NoSQL方案协作而更加强大。MongoDB既有优点也有缺点，我们在后续的章节中都会提及。
+
+您也许也注意到了，在书中我们是混用Mongo和MongoDB这两个词的。
+
+## 准备 ##
+本书大部分篇幅会用来关注MongoDB的核心功能。所以我们基本上使用的是MongoDB的外壳（shell）。shell在学习MongoDB还有管理数据库的时候很有用，不过您的实际代码还是会用相应的语言来驱动mongoDB的。
+
+这也引出了关于MongoDB您首先需要了解的东西：它的驱动。MongoDB有许多针对不同语言的[官方驱动](http://www.mongodb.org/display/DOCS/Drivers)。可以认为这些驱动和您所熟知的各种数据库驱动是一样的。基于这些驱动，MongoDB的开发社区又搭建了更多语言/框架相关的库。比如说[NoRM](https://github.com/atheken/NoRM)就是一个实现了LINQ的C#库，还有[MongoMapper](https://github.com/jnunemaker/mongomapper)，一个很好地支持ActiveRecord的Ruby库。您可以自行决定直接针对MongoDB的核心驱动编程，或者采用一些高层的库。在这里指出这点，是因为不少MongoDB的新手都会为既有官方驱动又有社区提供的库而困惑不已——前者着重与MongoDB的核心通讯/连接，而后者则提供了更多语言/框架相关的具体实现。
+
+我建议您在阅读本书的同时，也在MongoDB中尝试我给出的例子。如果在这个过程中您自己发现了什么问题，也可以在MongoDB环境中探索需求答案。安装并运行MongoDB其实很简单，只需要几分钟的时间。那么现在就开始吧。
+
+1. 从[官方下载页面](http://www.mongodb.org/downloads)的第一行（这是推荐的稳定版本）下载与您操作系统相应的安装包。根据不同的开发需要，选择32位或是64位的包。
+
+2. 解压下载的包（到任意路径）并进入`bin`子目录，暂且不要执行任何命令。让我先介绍一下，`mongod`将启动服务器进程而`mongo`会打开客户端的shell——大部分时间我们将和这两个可执行文件打交道。
+
+3. 在`bin`子目录中创建一个新的文本文件，取名为`mongodb.config`。
+
+4. 在mongodb.config中加一行：`dbpath=PATH_TO_WHERE_YOU_WANT_TO_STORE_YOUR_DATABASE_FILES`。例如，在Windows中您需要添加的可能是`dbpath=c:\mongodb\data`而在Linux下可能就是`dbpath=/etc/mongodb/data`。
+
+5. 确认您指定的`dbpath`是存在的。
+
+6. 执行mongod，带上参数`--config /path/to/your/mongodb.config`。
+
+以Windows用户为例，如果您把下载的的文件解压到`c:\mongodb\`，创建了`c:\mongodb\data\`，然后在`c:\mongodb\bin\mongodb.config`中添加了`dbpath=c:\mongodb\data\`。那么您就可以在命令行中输入以下指令来启动`mongod`：
+
+`c:\mongodb\bin\mongod --config c:\mongodb\bin\mongodb.config`
+
+您可以把这个`bin`加入到您的默认路径中省得每次都要输入完整的路径。对于MacOSX和Linux的用户，方法也是几乎一样的。唯一的区别在于路径不同。
+
+我希望您现在已经安装并可以运行MongoDB了。如果您遇到什么错误，注意看输出的错误信息——服务器（server）很善于解释究竟是哪里出了问题。
+
+此时您可以运行`mongo`了（没有*d*），它会启动一个shell并连接到运行中的服务器。输入'db.version()`以确认所有的东西都正常工作：您应该可以看到您所安装的软件版本。
+
+\clearpage
+
+## 第一章 - 基础 ##
 We begin our journey by getting to know the basic mechanics of working with MongoDB. Obviously this is core to understanding MongoDB, but it should also help us answer higher-level questions about where MongoDB fits.
 
 To get started, there are six simple concepts we need to understand.
