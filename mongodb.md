@@ -8,7 +8,7 @@
 ## 关于本书 ##
 
 ### 许可证 ###
-这本书，MongoDB小手册，基于Attribution-NonCommercial 3.0 Unported license发布。**您不需要为本书付钱。**
+这本书，The Little MongoDB Book，基于Attribution-NonCommercial 3.0 Unported license发布。**您不需要为本书付钱。**
 
 您有权复制、分发、修改或展示本书。但请认可本书的作者是Karl Seguin，也请勿将其用于任何商业用途。
 
@@ -24,7 +24,7 @@ Karl还著有[The Little Redis Book](http://openmymind.net/2012/1/23/The-Little-
 他的博客<http://openmymind.net>，推特账号是[@karlseguin](http://twitter.com/karlseguin)。
 
 ### 致谢 ###
-[Perry Neal](http://twitter.com/perryneal)，谢谢你给我无法衡量的帮助，谢谢你锐利的眼光、独到的思路以及无比的热情。非常感谢。
+Perry Neal，谢谢你给我无法衡量的帮助，谢谢你锐利的眼光、独到的思路以及无比的热情。非常感谢。
 
 ### 最新版本 ###
 本书的最新版本可以在下面的链接找到：
@@ -32,7 +32,7 @@ Karl还著有[The Little Redis Book](http://openmymind.net/2012/1/23/The-Little-
 <http://github.com/karlseguin/the-little-mongodb-book>.
 
 ### 关于本书的中文版本 ###
-本书的中文版由[justinyhuang](http://justinyhuang.com)完成。最新版本在xxxxxxxx。译文的纰漏欢迎告知<justin.y.huang@live.com>或直接提交github。
+本书的中文版由[justinyhuang](http://justinyhuang.com)完成，基于与原著相同的许可证。最新版本在xxxxxxxx。译文的纰漏欢迎告知<justin.y.huang@live.com>或直接提交github。
 
 \clearpage
 
@@ -83,60 +83,62 @@ NoSQL逐步攻陷了传统关系数据库的领地，就是这种急剧转变最
 \clearpage
 
 ## 第一章 - 基础 ##
-We begin our journey by getting to know the basic mechanics of working with MongoDB. Obviously this is core to understanding MongoDB, but it should also help us answer higher-level questions about where MongoDB fits.
+从了解基本的构成开始，我们开始踏上MongoDB探索之路。显然，这是认识MongoDB的关键，同时也有助于搞清楚MongoDB适用范围的高层次问题。
 
-To get started, there are six simple concepts we need to understand.
+作为开始，我们需要了解6个简单的概念：
 
-1. MongoDB has the same concept of a 'database' with which you are likely already familiar (or a schema for you Oracle folks).  Within a MongoDB instance you can have zero or more databases, each acting as high-level containers for everything else.
+1. MongoDB有着与您熟知的‘数据库’（database，对于Oracle就是‘schema’）一样的概念。在一个MongoDB的实例中您有若干个数据库或者一个也没有，不过这里的每一个数据库都是高层次的容器，用来储存其他的所有数据。
 
-2. A database can have zero or more 'collections'. A collection shares enough in common with a traditional 'table' that you can safely think of the two as the same thing.
+2. 一个数据库可以有若干‘集合’（collection），或者一个也没有。集合和传统概念中的‘表’有着足够多的共同点，所以您大可认为这两者是一样的东西。
 
-3. Collections are made up of zero or more 'documents'. Again, a document can safely be thought of as a 'row'.
+3. 集合由若干‘文档’（document）组成，也可以为空。类似的，可以认为这里的文档就是‘行’。
 
-4. A document is made up of one or more 'fields', which you can probably guess are a lot like 'columns'.
+4. 文档又由一个或者更多个‘域’（field）组成，您猜的没错，域就像是‘列’。
 
-5. 'Indexes' in MongoDB function much like their RDBMS counterparts.
+5. ‘索引’（index）在MongoDB中的意义就如同索引在RDBMS中一样。
 
-6. 'Cursors' are different than the other five concepts but they are important enough, and often overlooked, that I think they are worthy of their own discussion.  The important thing to understand about cursors is that when you ask MongoDB for data, it returns a cursor, which we can do things to, such as counting or skipping ahead, without actually pulling down data.
+6. ‘游标’（cursor）和以上5个概念不同，它很重要但是却常常被忽略，有鉴于此我认为应该进行专门讨论。关于游标有一点很重要，就是每当向MongoDB索要数据时，它总是返回一个游标。基于游标我们可以作诸如计数或是直接跳过之类的操作，而不需要真正去读数据。
 
-To recap, MongoDB is made up of `databases` which contain `collections`. A `collection` is made up of `documents`. Each `document` is made up of `fields`. `Collections` can be `indexed`, which improves lookup and sorting performance. Finally, when we get data from MongoDB we do so through a `cursor` whose actual execution is delayed until necessary.
+小结一下，MongoDB由‘数据库’组成，数据库由‘集合’组成，集合由‘文档’组成。‘域’组成了文档，集合可以被‘索引’，从而提高了查找和排序的性能。最后，我们从MongoDB读取数据的时候是通过‘游标’进行的，除非需要，游标不会真正去作读的操作。
 
-You might be wondering, why use new terminology (collection vs. table, document vs. row and field vs. column). Is it just to make things more complicated? The truth is that while these concepts are similar to their relational database counterparts, they are not identical. The core difference comes from the fact that relational databases define `columns` at the `table` level whereas a document-oriented database defines its `fields` at the `document` level. That is to say that each `document` within a `collection` can have its own unique set of `fields`.  As such, a `collection` is a dumbed down container in comparison to a `table`, while a `document` has a lot more information than a `row`.
+您也许已经觉得奇怪，为什么要用新的术语（表换成集合，行换成文档，列换成域），这不是越弄越复杂了么？这是因为虽然这些概念和那些关系数据库中的相应概念很相似，但是还是存在差异的。
+关键的差异在于关系数据库是在‘表’这一层次定义‘列’的，而一个面向文档的数据库则是在‘文档’这一层次定义‘域’的。也就是说，集合中的每个文档都可以有独立的域。因此，集合相对于表来说是一个简化了的容器，而文档则包含了比行要多得多的信息。（？？）
 
-Although this is important to understand, don't worry if things aren't yet clear. It won't take more than a couple of inserts to see what this truly means. Ultimately, the point is that a collection isn't strict about what goes in it (it's schema-less). Fields are tracked with each individual document. The benefits and drawbacks of this will be explored in a future chapter.
+虽然这些异同很重要，但是如果您现在还没搞清楚也不必担心。以后试着插入几次（数据）就知道我们这里说的是什么了。最后，集合对其中储存的内容并没有严格的要求（它是无模式的（schema-less）），Fields are tracked with each individual document（？？）。当中的优缺点我们会在后续的章节中继续探讨。
 
-Let's get hands-on. If you don't have it running already, go ahead and start the `mongod` server as well as a mongo shell. The shell runs JavaScript. There are some global commands you can execute, like `help` or `exit`. Commands that you execute against the current database are executed against the `db` object, such as `db.help()` or `db.stats()` . Commands that you execute against a specific collection, which is what we'll be doing a lot of, are executed against the `db.COLLECTION_NAME` object, such as `db.unicorns.help()` or `db.unicorns.count()`.
+开始动手实践吧。如果您还没有运行Mongo，现在就可以启动`mongod`服务器以及Mongo的shell。Mongo的shell运行在JavaScript之上，您可以执行一些全局的指令，如`help`或者`exit`。操作对象`db`来执行针对当前数据库的操作，例如`db.help()`或是`db.stats()`。操作对象`db.COLLECTION_NAME`来执行针对某一给集合的操作，比如说`db.unicorns.help()`或是`db.unicorns.count()`。我们以后将会有许多针对集合的操作。
 
-Go ahead and enter `db.help()`, you'll get a list of commands that you can execute against the `db` object.
+试试输入`db.help()`，您会看到一串命令列表，这些命令都可以用来操作`db`对象。
 
-A small side note. Because this is a JavaScript shell, if you execute a method and omit the parentheses `()`, you'll see the method body rather than executing the method. I only mention it because the first time you do it and get a response that starts with `function (...){` you won't be surprised. For example, if you enter `db.help` (without the parentheses), you'll see the internal implementation of the `help` method.
+顺带说一句，因为我们用的是JavaScript的shell，如果您执行一个命令而忘了加上`()`，您看到的将是这个命令的实现而并没有执行它。知道这个，您在这么做并看到以`function(...){`开头的信息的时候就不会觉得惊讶了。比如说如果您输入`db.help`（后面没有括弧），你就将看到`help`命令的具体实现。
 
-First we'll use the global `use` method to switch databases, go ahead and enter `use learn`. It doesn't matter that the database doesn't really exist yet. The first collection that we create will also create the actual `learn` database. Now that you are inside a database, you can start issuing database commands, like `db.getCollectionNames()`. If you do so, you should get an empty array (`[ ]`). Since collections are schema-less, we don't explicitly need to create them. We can simply insert a document into a new collection. To do so, use the `insert` command, supplying it with the document to insert:
+首先我们用全局命令`use`来切换数据库。输入`use learn`。这个数据库是否存在并没有关系，我们创建第一个集合后这个`learn`数据库就会生成的。现在您应该已经在一个数据库里面了，可以执行一些诸如`db.getCllectionNames()`的数据库命令了。如果您现在就这么做，将会看到一个空的数组（`[]`）。因为集合是无模式的，我们不需要专门去创建它。我们要做的只是把一个文档插入一个新的集合，这个集合就生成了。您可以像下面一样调用`insert`命令去插入一个文档：
 
 	db.unicorns.insert({name: 'Aurora', gender: 'f', weight: 450})
 
-The above line is executing `insert` against the `unicorns` collection, passing it a single argument. Internally MongoDB uses a binary serialized JSON format. Externally, this means that we use JSON a lot, as is the case with our parameters. If we execute `db.getCollectionNames()` now, we'll actually see two collections: `unicorns` and `system.indexes`. `system.indexes` is created once per database and contains the information on our database's index.
+以上命令对`unicorns`对象执行`insert`操作，并传入一个参数。在MongoDB内部，数据是以二进制的串行JSON格式存储的。这对外部的用户而言，意味着JSON的大量应用，就如同上面的参数一样。如果我们现在执行`db.getCollectionNames()`，将看到两个集合：`unicorns`以及`system.indexes`。`system.indexes`在每个数据库中都会创建，它包含了数据库中的索引信息。
 
-You can now use the `find` command against `unicorns` to return a list of documents:
+现在您可以对`unicorns`对象执行`find`命令，得到一个文档列表:
 
 	db.unicorns.find()
 
-Notice that, in addition to the data you specified, there's an `_id` field. Every document must have a unique `_id` field. You can either generate one yourself or let MongoDB generate an ObjectId for you. Most of the time you'll probably want to let MongoDB generate it for you. By default, the `_id` field is indexed - which explains why the `system.indexes` collection was created. You can look at `system.indexes`:
+请注意，除了您在文档中输入的各个域，还有一个一个叫做`_id`的域。每一个文档都必须有一个独立的`_id`域。您可以自己创建，也可以让MongoDB为您生成这个ObjectId。大部分情况下您还是会让MongoDB为您生成ID的。默认情况下，`_id`域是被索引了的——这就是为什么会有`system.indexes`创建出来的原因。看看`system.indexes`有什么：
 
 	db.system.indexes.find()
 
-What you're seeing is the name of the index, the database and collection it was created against and the fields included in the index.
+在结果中您会看到该索引的名字，它所绑定的数据库和集合的名字，还有包含这个索引的域。
 
-Now, back to our discussion about schema-less collections. Insert a totally different document into `unicorns`, such as:
+回到我们前面关于无模式集合的讨论。现在往`unicorns`插入一个完全不同的文档，比如说这样：
 
 	db.unicorns.insert({name: 'Leto', gender: 'm', home: 'Arrakeen', worm: false})
 
-And, again use `find` to list the documents. Once we know a bit more, we'll discuss this interesting behavior of MongoDB, but hopefully you are starting to understand why the more traditional terminology wasn't a good fit.
+再次用`find`可以列出所有的文档。学习到后面，我们将继续讨论MongoDB无模式的这一有趣的行为，不过我希望您已经开始慢慢了解为什么传统的那些术语不适合用在这里了。
 
-### Mastering Selectors ###
-In addition to the six concepts we've explored, there's one practical aspect of MongoDB you need to have a good grasp of before moving to more advanced topics: query selectors. A MongoDB query selector is like the `where` clause of an SQL statement. As such, you use it when finding, counting, updating and removing documents from collections. A selector is a JSON object , the simplest of which is `{}` which matches all documents (`null` works too). If we wanted to find all female unicorns, we could use `{gender:'f'}`.
+### 掌握选择器（selector） ###
+除了刚才介绍过的6个概念，MongoDB还有一个很实用的概念：查询选择器（query selector），在进入更高阶的内容之前，您也需要很好的了解它是什么。
+MongoDB的查询选择器就像SQL代码中的`where`语句。因此您可以用它在集合中查找，统计，更新或是删除文档。选择器就是一个JSON对象，最简单的形式就是`{}`，用来匹配所有的文档(`null`也可以）。如果我们需要找到所有雌性的独角兽(unicorn)，我们可以用选择器`{gender:'f'}`来匹配。
 
-Before delving too deeply into selectors, let's set up some data to play with. First, remove what we've put so far in the `unicorns` collection via: `db.unicorns.remove()` (since we aren't supplying a selector, it'll remove all documents). Now, issue the following inserts to get some data we can play with (I suggest you copy and paste this):
+在深入选择器之前，我们先输入一些数据以备后用。首先用`db.unicorns.remove()`删除之前我们在`unicorns`集合中输入的所有数据。（由于在这条命令中我们没有指定选择器，于是所有的文档都将被清除）。然后用下面的插入命令准备一些数据（建议拷贝粘帖这些命令）：
 
 	db.unicorns.insert({name: 'Horny', dob: new Date(1992,2,13,7,47), loves: ['carrot','papaya'], weight: 600, gender: 'm', vampires: 63});
 	db.unicorns.insert({name: 'Aurora', dob: new Date(1991, 0, 24, 13, 0), loves: ['carrot', 'grape'], weight: 450, gender: 'f', vampires: 43});
@@ -151,38 +153,37 @@ Before delving too deeply into selectors, let's set up some data to play with. F
 	db.unicorns.insert({name: 'Nimue', dob: new Date(1999, 11, 20, 16, 15), loves: ['grape', 'carrot'], weight: 540, gender: 'f'});
 	db.unicorns.insert({name: 'Dunx', dob: new Date(1976, 6, 18, 18, 18), loves: ['grape', 'watermelon'], weight: 704, gender: 'm', vampires: 165});
 
-Now that we have data, we can master selectors. `{field: value}` is used to find any documents where `field` is equal to `value`. `{field1: value1, field2: value2}` is how we do an `and` statement. The special `$lt`, `$lte`, `$gt`, `$gte` and `$ne` are used for less than, less than or equal, greater than, greater than or equal and not equal operations. For example, to get all male unicorns that weigh more than 700 pounds, we could do:
+现在我们有足够的数据，我们可以来掌握选择器了。`{field: value}`用来查找所有`field`等于`value`的文档。通过`{field1: value1, field2: value2}`的形式可以实现`与`操作。`$lt`、`$lte`、`$gt`、`$gte`以及`$ne`分别表示小于、小于或等于、大于、大于或等于以及不等于。举个例子，查找所有体重超过700磅的雄性独角兽的命令是：
 
 	db.unicorns.find({gender: 'm', weight: {$gt: 700}})
-	//or (not quite the same thing, but for demonstration purposes)
+	//或者 (效果并不完全一样，仅用来为了演示不同的方法)
 	db.unicorns.find({gender: {$ne: 'f'}, weight: {$gte: 701}})
 
-The `$exists` operator is used for matching the presence or absence of a field, for example:
+`$exists`操作符用于匹配一个域是否存在，比如下面的命令：
 
 	db.unicorns.find({vampires: {$exists: false}})
-
-Should return a single document. If we want to OR rather than AND we use the `$or` operator and assign it to an array of values we want or'd:
+会返回单个文档（译者：只有这个文档没有vampires域）。如果需要*或*而不是*与*，可以用`$or`操作符并作用于需要进行或操作的数组：
 
 	db.unicorns.find({gender: 'f', $or: [{loves: 'apple'}, {loves: 'orange'}, {weight: {$lt: 500}}]})
 
-The above will return all female unicorns which either love apples or oranges or weigh less than 500 pounds.
+以上命令返回所有或者喜欢苹果，或者喜欢橙子，或者体重小于500磅的雌性独角兽。
 
-There's something pretty neat going on in our last example. You might have already noticed, but the `loves` field is an array. MongoDB supports arrays as first class objects. This is an incredibly handy feature. Once you start using it, you wonder how you ever lived without it. What's more interesting is how easy selecting based on an array value is: `{loves: 'watermelon'}` will return any document where `watermelon` is a value of `loves`.
+您可能已经注意到了，在最后的一个例子中有一个非常棒的特性：`loves`域是一个数组。在MongoDB中数组是一级对象(first class object)。这是非常非常有用的功能。一旦用过，没有了它你可能都不知道怎么活下去。更有意思的是基于数组的选择是非常简单的：`{loves: 'watermelon'}`就会找到`loves`中有`watermelon`这个值的所有文档。
+除了我们目前所介绍过的，还有更多的操作符
+可以使用。最灵活的是`$where`，允许输入JavaScript并在服务器端运行。这些都在MongoDB网站的[Advanced Queries](http://www.mongodb.org/display/DOCS/Advanced+Queries#AdvancedQueries)部分有详细介绍。不过这里介绍的都是基本的命令，了解了这些您就可以开始使用Mongo了。而这些命令也往往是您大多数时间会用到的所有命令。
 
-There are more available operators than what we've seen so far. The most flexible being `$where` which lets us supply JavaScript to execute on the server. These are all described in the [Advanced Queries](http://www.mongodb.org/display/DOCS/Advanced+Queries#AdvancedQueries) section of the MongoDB website. What we've covered so far though is the basics you'll need to get started. It's also what you'll end up using most of the time.
+我们已经介绍过怎样在`find`命令中使用选择器了。此外选择器还可以用在`remove`命令中，我们已经大致提过；还有`count`命令中，我们并没有介绍不过您自己可以去试试看；还有`update`命令，我们在后面还会提到。
 
-We've seen how these selectors can be used with the `find` command. They can also be used with the `remove` command which we've briefly looked at, the `count` command, which we haven't looked at but you can probably figure out, and the `update` command which we'll spend more time with later on.
-
-The `ObjectId` which MongoDB generated for our `_id` field can be selected like so:
+MongoDB为`_id`域生成的`ObjectId`也是可以被选择的，就像这样：
 
 	db.unicorns.find({_id: ObjectId("TheObjectId")})
 
-### In This Chapter ###
-We haven't looked at the `update` command yet, or some of the fancier things we can do with `find`. However, we did get MongoDB up and running, looked briefly at the `insert` and `remove` commands (there isn't much more than what we've seen). We also introduced `find` and saw what MongoDB `selectors` were all about. We've had a good start and laid a solid foundation for things to come. Believe it or not, you actually know most of what there is to know about MongoDB - it really is meant to be quick to learn and easy to use. I strongly urge you to play with your local copy before moving on. Insert different documents, possibly in new collections, and get familiar with different selectors. Use `find`, `count` and `remove`. After a few tries on your own, things that might have seemed awkward at first will hopefully fall into place.
+### 本章小结 ###
+我们还没有介绍`update`命令以及`find`的更华丽的功能。不过我们已经让MongoDB运行起来，并且执行了`insert`和`remove`命令（这些命令看过本章的介绍也差不多了）。我们还介绍了`find`命令并见识了什么是MongoDB的选择器。一个好的开头为后面的深入奠定了坚实的基础。不管你信不信，您事实上已经了解了关于MongoDB所需要知道的知识——它本来就是易学易用的。我强烈建议您在继续读下去之前多多在MongoDB练习尝试一下。试着插入不同的文档，可以插入到新的集合中，并且熟悉不同的选择器表达式。多用`find`，`count`和`remove`。经过您自己的实践，那些初看很别扭的东西最后都会变得好用起来的。
 
 \clearpage
 
-## Chapter 2 - Updating ##
+## 第二章 - 更新 ##
 In chapter 1 we introduced three of the four CRUD (create, read, update and delete) operations. This chapter is dedicated to the one we skipped over: `update`. `Update` has a few surprising behaviors, which is why we dedicate a chapter to it.
 
 ### Update: Replace Versus $set ###
