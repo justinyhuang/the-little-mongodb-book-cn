@@ -184,79 +184,81 @@ MongoDB为`_id`域生成的`ObjectId`也是可以被选择的，就像这样：
 \clearpage
 
 ## 第二章 - 更新 ##
-In chapter 1 we introduced three of the four CRUD (create, read, update and delete) operations. This chapter is dedicated to the one we skipped over: `update`. `Update` has a few surprising behaviors, which is why we dedicate a chapter to it.
+在第一章中我们介绍了CRUD（Copy、Read、Update、Delete）中的三个操作。本章专门用来介绍前面跳过的第四个操作：`update`。`update`有一些出人意料的行为，这就是为什么我们专门在这章当中讨论它。
 
-### Update: Replace Versus $set ###
-In its simplest form, `update` takes 2 arguments: the selector (where) to use and what field to update with. If Roooooodles had gained a bit of weight, we could execute:
+### update: replace 与 $set ###
+`update`最简单的执行方式有两个参数：一个是选择器(选择更新的范围)，一个是需要更新的域。如果Roooooodles长胖了，我们就需要：
 
 	db.unicorns.update({name: 'Roooooodles'}, {weight: 590})
 
-(if you've played with your `unicorns` collection and it doesn't have the original data anymore, go ahead and `remove` all documents and re-insert from the code in chapter 1.)
+（如果您用的是自己创建的`unicorns`集合，原来的数据都丢失了，那么就用`remove`删除掉所有文档，重新插入第一章中的数据）
 
-If this was real code, you'd probably update your records by `_id`, but since I don't know what `_id` MongoDB generated for you, we'll stick to `names`.  Now, if we look at the updated record:
+在实际的代码中，您也许会基于`_id`来更新记录，不过既然我不知道MongoDB给您分配的`_id`是什么，我们就用`name`好了。如果我们看看更新过的记录：
 
 	db.unicorns.find({name: 'Roooooodles'})
 
-You should discover `updates` first surprise. No document is found because the second parameter we supply is used to **replace** the original. In other words, the `update` found a document by `name` and replaced the entire document with the new document (the 2nd parameter). This is different than how SQL's `update` command works. In some situations, this is ideal and can be leveraged for some truly dynamic updates. However, when all you want to do is change the value of one, or a few fields, you are best to use MongoDB's `$set` modifier:
+您就会发现`update`第一个出人意料的地方：上面的命令找不到任何文档。这是因为命令中输入的第二个参数是用来**替换（replace）**原来的文档的。换句话说，`update`先是根据`name`找到一个文档，然后用新的文档（也就是第二个参数）去覆盖找到的整个文档。这和SQL中的`update`的行为是不一样的。在某些情况下，这一行为非常理想，可以用于实现完全动态的更新。然而当您需要的仅是改变某个文档的某个值或者几个域，最好还是用MongoDB的`$set`修改符（modifier）：
 
 	db.unicorns.update({weight: 590}, {$set: {name: 'Roooooodles', dob: new Date(1979, 7, 18, 18, 44), loves: ['apple'], gender: 'm', vampires: 99}})
 
-This'll reset the lost fields. It won't overwrite the new `weight` since we didn't specify it. Now if we execute:
+这样做就会重设那些丢失的域。新的`weight`值不会被覆盖，因为我们没有在命令中指定它。如果现在执行：
 
 	db.unicorns.find({name: 'Roooooodles'})
 
-We get the expected result. Therefore, the correct way to have updated the weight in the first place is:
+得到的就是预想的结果。所以在一开始时正确的更新体重的方法应该是：
 
 	db.unicorns.update({name: 'Roooooodles'}, {$set: {weight: 590}})
 
-### Update Modifiers ###
-In addition to `$set`, we can leverage other modifiers to do some nifty things. All of these update modifiers work on fields - so your entire document won't be wiped out. For example, the `$inc` modifier is used to increment a field by a certain positive or negative amount. For example, if Pilot was incorrectly awarded a couple vampire kills, we could correct the mistake by executing:
+### 更新修改符 ###
+除了`$set`，还有其他的修改符可以用来非常漂亮地完成一些任务。所有的更新修改符都作用于域上——这样您的文档就不会被整个改写。比如说，`$inc`可以用来将一个域的值增加一个正的或负的数值。举个例子，如果由于失误，Pilot多获得了一些吸血的技能(vampire skill。译者：这里的独角兽可以理解为游戏中的某个角色，而这个角色也许可以通过升级打怪的方式提升某些技能，比如说吸血技能。)，我们可以用下面的命令来纠正这个错误：
 
 	db.unicorns.update({name: 'Pilot'}, {$inc: {vampires: -2}})
 
-If Aurora suddenly developed a sweet tooth, we could add a value to her `loves` field via the `$push` modifier:
+如果Aurora忽然长出了一颗可爱的牙（译者：可以吃糖了），可以用`$push`修改符为她的`loves`域添加一个新的值：
 
 	db.unicorns.update({name: 'Aurora'}, {$push: {loves: 'sugar'}})
 
-The [Updating](http://www.mongodb.org/display/DOCS/Updating) section of the MongoDB website has more information on the other available update modifiers.
+MongoDB网站上的[Updating](http://www.mongodb.org/display/DOCS/Updating)部分可以找到其他更新修改符的更多信息。
 
-### Upserts ###
-One of `updates` more pleasant surprises is that it fully supports `upserts`. An `upsert` updates the document if found or inserts it if not. Upserts are handy to have in certain situations and, when you run into one, you'll know it. To enable upserting we set a third parameter to `true`.
+### 插新（Upsert） ###
+ > 译者：[Upsert](http://en.wikipedia.org/wiki/Upsert)的意思是update if present; insert if not。是update和insert合体的产物。没有找到一个合适的词作为翻译，于是我斗胆发明了“插新”这个词，取或插入或更新之意。如有更好的办法，还请指点。
 
-A mundane example is a hit counter for a website. If we wanted to keep an aggregate count in real time, we'd have to see if the record already existed for the page, and based on that decide to run an update or insert. With the third parameter omitted (or set to false), executing the following won't do anything:
+`update`的一个比较讨喜的出人意料之处就是它完全支持插新(`upsert')。当目标文档存在的时候，插新操作会更新该文档，否则就插入该新文档。插新在某些情况下是很方便的，当您碰到这种情况的时候就会知道了。为了打开插新的功能，我们在使用`update`时把第三个参数设为`true`。
+
+一个很常见的例子就是网站的点击计数器。如果需要得到实时的点击累计数值，我们需要知道这个页面的点击记录是否存在，然后决定是要更新点击数还是插入。如果忽略第三个参数（或者是设置为false），下面的命令什么也不做：
 
 	db.hits.update({page: 'unicorns'}, {$inc: {hits: 1}});
 	db.hits.find();
 
-However, if we enable upserts, the results are quite different:
+如果打开了插新，结果就不一样了：
 
 	db.hits.update({page: 'unicorns'}, {$inc: {hits: 1}}, true);
 	db.hits.find();
 
-Since no documents exists with a field `page` equal to `unicorns`, a new document is inserted. If we execute it a second time, the existing document is updated and `hits` is incremented to 2.
+这一次，因为没有文档有域`page`的值为`unicorns`，就插入一个新的文档。再执行一次上面的命令，创建好的文档就会被更新，而`hits`的值就会增加为2。
 
 	db.hits.update({page: 'unicorns'}, {$inc: {hits: 1}}, true);
 	db.hits.find();
 
-### Multiple Updates ###
-The final surprise `update` has to offer is that, by default, it'll update a single document. So far, for the examples we've looked at, this might seem logical. However, if you executed something like:
+### 多重更新 ###
+`update`最后的一个惊喜是，它会默认地只更新一个文档。到目前为止就我们所见到的例子来看，这样做是合理的。不过如果执行下面的命令：
 
 	db.unicorns.update({}, {$set: {vaccinated: true }});
 	db.unicorns.find({vaccinated: true});
 
-You'd likely expect to find all of your precious unicorns to be vaccinated. To get the behavior you desire, a fourth parameter must be set to true:
+您想要做的应该是找出所有已经注射过疫苗（vaccinated）的独角兽，但为了达到这样的目的，需要把第四个参数设为true：
 
 	db.unicorns.update({}, {$set: {vaccinated: true }}, false, true);
 	db.unicorns.find({vaccinated: true});
 
-### In This Chapter ###
-This chapter concluded our introduction to the basic CRUD operations available against a collection. We looked at `update` in detail and observed three interesting behaviors. First, unlike an SQL update, MongoDB's `update` replaces the actual document. Because of this the `$set` modifier is quite useful. Secondly, `update` supports an intuitive `upsert` which is particularly useful when paired with the `$inc` modifier. Finally, by default, `update` only updates the first found document.
+### 本章小结 ###
+本章完成了对基础的集合操作，CRUD的介绍。我们细致的了解了`update`以及它的三个有意思的行为：第一，和SQL的update不同，MongoDB的`update会替换实际的文档。因此`$set`修改符就显得很有用了。第二，`update`支持直观的`插新`，这在和`$inc`修改符结合起来的时候特别有用。最后，`update`的默认行为是只更新第一个找到的文档。
 
-Do remember that we are looking at MongoDB from the point of view of its shell. The driver and library you use could alter these default behaviors or expose a different API. For example, the Ruby driver merges the last two parameters into a single hash: `{:upsert => false, :multi => false}`. Similarly, the PHP driver, merges the last two parameters into an array: `array('upsert' => false, 'multiple' => false)`. 
+一定要记住的是，我们是在MongoDB的shell中介绍它的。实际应用时您所采用的驱动或是库有可能会修改这些默认的行为，或是提供一个不同的编程接口（API）。例如：Ruby的驱动把最后的两个参数合并为一个哈希表：`{:upsert => false, :multi => false}`。类似地，PHP的驱动把最后的两个参数合并到了一个数组中：`array('upsert' => false, 'multiple' => false)`。
 
 \clearpage
 
-## Chapter 3 - Mastering Find ##
+## 第三章 - 掌握查找 ##
 Chapter 1 provided a superficial look at the `find` command. There's more to `find` than understanding `selectors` though. We already mentioned that the result from `find` is a `cursor`. We'll now look at exactly what this means in more detail.
 
 ### Field Selection ###
