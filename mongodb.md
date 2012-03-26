@@ -446,17 +446,17 @@ MongoDB的另外一个很强大的功能就是它对地理信息索引功能的�
 
 \clearpage
 
-## Chapter 6 - MapReduce ##
-MapReduce is an approach to data processing which has two significant benefits over more traditional solutions. The first, and main, reason it was developed is performance. In theory, MapReduce can be parallelized, allowing very large sets of data to be processed across many cores/CPUs/machines. As we just mentioned, this isn't something MongoDB is currently able to take advantage of. The second benefit of MapReduce is that you get to write real code to do your processing. Compared to what you'd be able to do with SQL, MapReduce code is infinitely richer and lets you push the envelope further before you need to use a more specialized solution.
+## 第六章 - MapReduce ##
+MapReduce是一种数据处理的方法，有相比较为传统的方案它有两个显著的优势。第一个优势是它卓越的性能，也是最初开发MapReduce的主要目的。理论上MapReduce可以并行工作，可以利用多核/多CPU/多机器同时处理非常大量的数据。我们也说过，这点优势MongoDB无法利用上。第二个优势就是用户可以为数据处理编写真正的程序。与SQL相比，用MapReduce可以实现无线多种功能，在逼不得已寻求更专业的方案之前，MapReduce提供了更多的可能。
 
-MapReduce is a pattern that has grown in popularity, and you can make use of it almost anywhere; C#, Ruby, Java, Python and so on all have implementations. I want to warn you that at first this'll seem very different and complicated. Don't get frustrated, take your time and play with it yourself. This is worth understanding whether you are using MongoDB or not.
+MapReduce这种模式越来越普及，几乎任何语言上都有它的实现：C#，Ruby，Java，Python等等。我要说的是一开始它看起来和其他方案很不一样而且很复杂，不过不要泄气，花些时间来实践。无论您用不用MongoDB，它都很值得您去了解。
 
-### A Mix of Theory and Practice ###
-MapReduce is a two-step process. First you map and then you reduce. The mapping step transforms the inputted documents and emits a key=>value pair (the key and/or value can be complex). The reduce gets a key and the array of values emitted for that key and produces the final result. We'll look at each step, and the output of each step.
+### 理论与实践 ###
+MapReduce的流程分两步。首先做映射（map）然后做缩减（reduce）。在映射时转换输入的文档并输出（emit）键-值组合（键或值可以很复杂）。在缩减时将一个键以及为该键输出的值的数组生成最终的结果。我们来看看这当中的每一步以及相应的输出。
 
-The example that we'll be using is to generate a report of the number of hits, per day, we get on a resource (say a webpage). This is the *hello world* of MapReduce. For our purposes, we'll rely on a `hits` collection with two fields: `resource` and `date`. Our desired output is a breakdown by `resource`, `year`, `month`, `day` and `count`.
+下面的例子假设为某个数据源（比如说一个网页）生成每天的点击数。这相当于MapReduce的*hello world*。为了实现这个应用，我们需要有一个`hits`集合，其中有两个域：`resource`和`date`。我们设计的输出分为：`resource`，`year`，`month`，`day`以及`count`。
 
-Given the following data in `hits`:
+又假设`hits`的数据如下：
 
 	resource     date
 	index        Jan 20 2010 4:30
@@ -470,7 +470,7 @@ Given the following data in `hits`:
 	index        Jan 21 2010 9:30
 	index        Jan 22 2010 5:00
 
-We'd expect the following output:
+我们希望最终有下面的输出：
 
 	resource  year   month   day   count
 	index     2010   1       20    3
@@ -479,11 +479,11 @@ We'd expect the following output:
 	index     2010   1       21    2
 	index     2010   1       22    1
 
-(The nice thing about this type of approach to analytics is that by storing the output, reports are fast to generate and data growth is controlled (per resource that we track, we'll add at most 1 document per day.)
+当前分析的这个方法有一个好处，那就是通过存储输出的数据，报告很快就可以生成，且数据的增长是可控的。（对于上面的数据源，每天只需要增加最多一个文档）
 
-For the time being, focus on understanding the concept. At the end of this chapter, sample data and code will be given for you to try on your own.
+我们先专注于概念的理解，到了本章快结束时，会有数据和代码的示例供您亲自实验。
 
-The first thing to do is look at the map function. The goal of map is to make it emit a value which can be reduced. It's possible for map to emit 0 or more times. In our case, it'll always emit once (which is common). Imagine map as looping through each document in hits. For each document we want to emit a key with resource, year, month and day, and a simple value of 1:
+首先来看看映射函数。映射的目的在于输出值以便后续缩减。一个映射有可能不输出（？？）或者输出多次值。在我们的例子中，映射总是会输出一次（很正常的做法）。可以把这里的映射想象成遍历hits中的每一个文档。对于每个文档我们要输出一个包含了resource，year，month和day的键，还有一个简单的值，1：
 
 	function() {
 		var key = {
@@ -495,7 +495,7 @@ The first thing to do is look at the map function. The goal of map is to make it
 		emit(key, {count: 1});
 	}
 
-`this` refers to the current document being inspected. Hopefully what'll help make this clear for you is to see what the output of the mapping step is. Using our above data, the complete output would be:
+`this`指的是当前正在分析的文档。希望看到下面映射输出可以让这个过程清楚一些。基于前面的数据，完整的映射输出应该是：
 
 	{resource: 'index', year: 2010, month: 0, day: 20} => [{count: 1}, {count: 1}, {count:1}]
 	{resource: 'about', year: 2010, month: 0, day: 20} => [{count: 1}]
@@ -503,9 +503,10 @@ The first thing to do is look at the map function. The goal of map is to make it
 	{resource: 'index', year: 2010, month: 0, day: 21} => [{count: 1}, {count: 1}]
 	{resource: 'index', year: 2010, month: 0, day: 22} => [{count: 1}]
 
-Understanding this intermediary step is the key to understanding MapReduce. The values from emit are grouped together, as arrays, by key. .NET and Java developers can think of it as being of type `IDictionary<object, IList<object>>` (.NET) or `HashMap<Object, ArrayList>` (Java).
+了解这一中间步骤是了解MapReduce的关键。输出的值根据键的不同被组织成相应的数组。.NET和Java的程序员可以把这视为类型`IDictionary<object, IList<object>>`（.NET）或者是`HashMap<Object, ArrayList>`（Java）。
 
-Let's change our map function in some contrived way:
+
+接下来我们人为的修改一下映射函数的行为：
 
 	function() {
 		var key = {resource: this.resource, year: this.date.getFullYear(), month: this.date.getMonth(), day: this.date.getDate()};
@@ -516,13 +517,13 @@ Let's change our map function in some contrived way:
 		}
 	}
 
-The first intermediary output would change to:
+第一个中间输出因此变成：
 
 	{resource: 'index', year: 2010, month: 0, day: 20} => [{count: 5}, {count: 1}, {count:1}]
 
-Notice how each emit generates a new value which is grouped by our key.
+值得注意的是每一次输出是如何按照键的不同来分组生成新的值的。
 
-The reduce function takes each of these intermediary results and outputs a final result. Here's what ours looks like:
+缩减函数接受中间结果后产生了最后的结果。例子中的缩减函数见下：
 
 	function(key, values) {
 		var sum = 0;
@@ -532,7 +533,7 @@ The reduce function takes each of these intermediary results and outputs a final
 		return {count: sum};
 	};
 
-Which would output:
+得到的结果是：
 
 	{resource: 'index', year: 2010, month: 0, day: 20} => {count: 3}
 	{resource: 'about', year: 2010, month: 0, day: 20} => {count: 1}
@@ -540,27 +541,27 @@ Which would output:
 	{resource: 'index', year: 2010, month: 0, day: 21} => {count: 2}
 	{resource: 'index', year: 2010, month: 0, day: 22} => {count: 1}
 
-Technically, the output in MongoDB is:
+MongoDB中的输出是：
 
 	_id: {resource: 'home', year: 2010, month: 0, day: 20}, value: {count: 3}
 
-Hopefully you've noticed that this is the final result we were after.
+希望您注意到这个就是我们想要的结果了。
 
-If you've really been paying attention, you might be asking yourself *why didn't we simply use `sum = values.length`?* This would seem like an efficient approach when you are essentially summing an array of 1s. The fact is that reduce isn't always called with a full and perfect set of intermediate data. For example, instead of being called with:
+如果您有注意到，可能会问*为什么不直接用`sum = values.length`？*如果在计算值都是1的数组，这个方法确实是很有效的。可是实际上缩减函数不见得总是会得到完整的中间数据，比如说，不是：
 
 	{resource: 'home', year: 2010, month: 0, day: 20} => [{count: 1}, {count: 1}, {count:1}]
 
-Reduce could be called with:
+而是像下面这样调用Reduce：
 
 	{resource: 'home', year: 2010, month: 0, day: 20} => [{count: 1}, {count: 1}]
 	{resource: 'home', year: 2010, month: 0, day: 20} => [{count: 2}, {count: 1}]
 
-The final output is the same (3), the path taken is simply different. As such, reduce must always be idempotent. That is, calling reduce multiple times should generate the same result as calling it once.
+结果应该还是3，不过计算的路径就不一样了。因此，缩减函数必须具有幂等性。也就是说，多次调用该函数和只调用一次的效果应该是一样的。
 
-We aren't going to cover it here but it's common to chain reduce methods when performing more complex analysis.
+一个比较常见的做法是将多个缩减函数链接起来实现更加复杂的分析功能，不过我们在这里就不再深入了。
 
 ### Pure Practical ###
-With MongoDB we use the `mapReduce` command on a collection. `mapReduce` takes a map function, a reduce function and an output directive. In our shell we can create and pass a JavaScript function. From most libraries you supply a string of your functions (which is a bit ugly). First though, let's create our simple data set:
+MongoDB中是对集合使用`mapReduce`的。`mapReduce`需要一个映射函数，一个缩减函数以及一个输出指令。在shell中我们可以创建并传递一个JavaScript函数的调用。大多数的库都支持这种将函数当作字符串值的方式（虽然有点难看）。首先我们还是来创建一些数据：
 
 	db.hits.insert({resource: 'index', date: new Date(2010, 0, 20, 4, 30)});
 	db.hits.insert({resource: 'index', date: new Date(2010, 0, 20, 5, 30)});
@@ -573,7 +574,7 @@ With MongoDB we use the `mapReduce` command on a collection. `mapReduce` takes a
 	db.hits.insert({resource: 'index', date: new Date(2010, 0, 21, 9, 30)});
 	db.hits.insert({resource: 'index', date: new Date(2010, 0, 22, 5, 0)});
 
-Now we can create our map and reduce functions (the MongoDB shell accepts multi-line statements, you'll see *...* after hitting enter to indicate more text is expected):
+然后创建我们自己的映射和缩减函数（MongoDB的shell允许多行声明，回车之后您会看到*...*说明shell在等待后续的输入）：
 
 	var map = function() {
 		var key = {resource: this.resource, year: this.date.getFullYear(), month: this.date.getMonth(), day: this.date.getDate()};
@@ -587,26 +588,24 @@ Now we can create our map and reduce functions (the MongoDB shell accepts multi-
 		});
 		return {count: sum};
 	};
-
-Which we can use the `mapReduce` command against our `hits` collection by doing:
+有了上面两个函数，就可以对`hits`集合使用`mapReduce`命令了：
 
 	db.hits.mapReduce(map, reduce, {out: {inline:1}})
-
-If you run the above, you should see the desired output. Setting `out` to `inline` means that the output from `mapReduce` is immediately streamed back to us. This is currently limited for results that are 16 megabytes or less. We could instead specify `{out: 'hit_stats'}` and have the results stored in the `hit_stats` collections:
+执行上面的命令后，应该就可以看到期望的输出了。把`out`设成`inline`是为了把`mapReduce`的输出流直接返回到shell中显示。这个功能目前只能用于最多16MB的结果。另外的一个方法就是使用`{out: 'hit_stats'}`以把结果存储在`hit_stats`集合里：
 
 	db.hits.mapReduce(map, reduce, {out: 'hit_stats'});
 	db.hit_stats.find();
 
-When you do this, any existing data in `hit_stats` is lost. If we did `{out: {merge: 'hit_stats'}}` existing keys would be replaced with the new values and new keys would be inserted as new documents. Finally, we can `out` using a `reduce` function to handle more advanced cases (such an doing an upsert).
+上面的命令执行之后，`hit_stats`中既有的数据就会丢失。如果用的是`{out: {merge: 'hit_stats'}}`既有的键就会被新的值覆盖（？？）且新的键就会被作为新的文档插入到集合中。最后，我们可以用`reduce`函数中的`out`选项处理更复杂的情况（比如说插新）。
 
-The third parameter takes additional options, for example we could filter, sort and limit the documents that we want analyzed. We can also supply a `finalize` method to be applied to the results after the `reduce` step.
+第三个参数是一个可选项，比如可以用来过滤、排序或是限制需要分析的文档。也可以将一个`finalize`方法应用到`reduce`之后的结果上。
 
-### In This Chapter ###
-This is the first chapter where we covered something truly different. If it made you uncomfortable, remember that you can always use MongoDB's other [aggregation capabilities](http://www.mongodb.org/display/DOCS/Aggregation) for simpler scenarios. Ultimately though, MapReduce is one of MongoDB's most compelling features. The key to really understanding how to write your map and reduce functions is to visualize and understand the way your intermediary data will look coming out of `map` and heading into `reduce`.
+### 本章小结 ###
+这是介绍了MongoDB真正与众不同指出的第一个章节。如果您觉得很不自在，要知道您总是可以使用MongoDB的其他[聚合能力](http://www.mongodb.org/display/DOCS/Aggregation)事情变得简单一些。不过归根结底，MapReduce是MongoDB最吸引人的功能之一。学会编写映射函数和缩减函数的关键在于把`映射`输出的数据以及`缩减`所需要的数据可视化，并真正了解这些数据。
 
 \clearpage
 
-## Chapter 7 - Performance and Tools ##
+## 第七章 - 性能与工具 ##
 In this last chapter, we look at a few performance topics as well as some of the tools available to MongoDB developers. We won't dive deeply into either topic, but we will examine the most import aspects of each.
 
 ### Indexes ###
