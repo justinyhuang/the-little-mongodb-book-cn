@@ -259,190 +259,190 @@ MongoDB网站上的[Updating](http://www.mongodb.org/display/DOCS/Updating)部�
 \clearpage
 
 ## 第三章 - 掌握查找 ##
-Chapter 1 provided a superficial look at the `find` command. There's more to `find` than understanding `selectors` though. We already mentioned that the result from `find` is a `cursor`. We'll now look at exactly what this means in more detail.
+第一章对`find`命令作了一些简单的介绍，除了选择器以外，`find`还有很多其他的特性。之前有提到过`find`返回的结果是一个游标。现在就将对这点做深入的讨论。
 
-### Field Selection ###
-Before we jump into `cursors`, you should know that `find` takes a second optional parameter. This parameter is the list of fields we want to retrieve. For example, we can get all of the unicorns names by executing:
+### 域的选择 ###
+在开始游标的话题之前，您需要知道`find`还有第二个可选参数。该参数是一个列表，用户在这个表中指明要求`find`读取的域。例如，可以用下面的命令获取所有独角兽的名字：
 
 	db.unicorns.find(null, {name: 1});
 
-By default, the `_id` field is always returned. We can explicitly exclude it by specifying `{name:1, _id: 0}`.
+`_id`域在默认情况下总是会被`find`返回的。`{name:1, _id: 0}`可以显式地从返回结果中排除它。
 
-Aside from the `_id` field, you cannot mix and match inclusion and exclusion. If you think about it, that actually makes sense. You either want to select or exclude one or more fields explicitly.
+除了上面排除`_id`域的情况外，不可以将选择与排除的表达式混在一起使用（译者：比如说`{_id:1, name:0}`或者`{name:1, gender:0}`都是不合法的）。想一想其实也合乎逻辑:不是显式地选择，就是说明哪些域需要排除。
 
-### Ordering ###
-A few times now I've mentioned that `find` returns a cursor whose execution is delayed until needed. However, what you've no doubt observed from the shell is that `find` executes immediately. This is a behavior of the shell only. We can observe the true behavior of `cursors` by looking at one of the methods we can chain to `find`. The first that we'll look at is `sort`. `sort` works a lot like the field selection from the previous section. We specify the fields we want to sort on, using 1 for ascending and -1 for descending. For example:
+### 排序 ###
+我已经好几次提到，`find`返回的是一个游标，对游标的操作直到必要的时候才会执行。然而在shell中的感觉却是`find`马上就执行了。这仅仅是`find`在shell中的行为。我们可以通过把`find`和一个命令连接起来的方法观察`find`真正的行为。我们先用`sort`来做这个实验。`sort`的运作方式有点像上一节提到的域的选择：标明哪些域需要排序，用1表示升序，用-1表示降序。例如：
 
-	//heaviest unicorns first
+	//最重的独角兽排在第一
 	db.unicorns.find().sort({weight: -1})
 
-	//by vampire name then vampire kills:
+	//优先按名字排序再按吸血技能排序
 	db.unicorns.find().sort({name: 1, vampires: -1})
 
-Like with a relational database, MongoDB can use an index for sorting. We'll look at indexes in more detail later on. However, you should know that MongoDB limits the size of your sort without an index. That is, if you try to sort a large result set which can't use an index, you'll get an error. Some people see this as a limitation. In truth, I wish more databases had the capability to refuse to run unoptimized queries. (I won't turn every MongoDB drawback into a positive, but I've seen enough poorly optimized databases that I sincerely wish they had a strict-mode.)
+如同关系数据库，MongoDB也可以利用索引进行排序。我们会在后面再详细讨论索引。只是您要知道的是MongoDB限制排序的规模用的并不是索引。（？？）也就是说，一个结果的集是不能用索引的，如果您尝试对一个大规模的结果的集进行排序，那么就会看到错误的提示。（？？）对一些人来说，这是MongoDB的局限性。但是说实话，我真希望更多的数据库能够像MongoDB那样拒绝执行那些未经优化（？？）的查询。（我倒不是要把每个MongoDB的缺点都硬掰成优点，只是我见过太多缺乏优化的数据库了，所以我真诚的希望它们能有一个`严格模式`以限制未经优化的输入（？？））
 
-### Paging ###
-Paging results can be accomplished via the `limit` and `skip` cursor methods. To get the second and third heaviest unicorn, we could do:
+### 分页（paging） ###
+对结果的分页可以通过`limit`以及`skip`这两个游标操作来实现。比如可以用一下的命令来得到第二，第三重的独角兽：
 
 	db.unicorns.find().sort({weight: -1}).limit(2).skip(1)
 
-Using `limit` in conjunction with `sort`, is a good way to avoid running into problems when sorting on non-indexed fields.
+对非索引域进行排序是很麻烦的，联合`limit`一起使用`sort`是避免此类麻烦的好方法。
 
-### Count ###
-The shell makes it possible to execute a `count` directly on a collection, such as:
+### 计数 ###
+在shell中我们可以对一个集合直接地执行`count`命令，例如：
 
 	db.unicorns.count({vampires: {$gt: 50}})
 
-In reality, `count` is actually a `cursor` method, the shell simply provides a shortcut. Drivers which don't provide such a shortcut need to be executed like this (which will also work in the shell):
+而现实中`count`却是一个游标的操作，shell只是提供了一条捷径而已。在使用没有提供这些捷径的驱动时，就要用到下面的命令（在shell中也有用）：
 
 	db.unicorns.find({vampires: {$gt: 50}}).count()
 
-### In This Chapter ###
-Using `find` and `cursors` is a straightforward proposition. There are a few additional commands that we'll either cover in later chapters or which only serve edge cases, but, by now, you should be getting pretty comfortable working in the mongo shell and understanding the fundamentals of MongoDB.
+### 本章小结 ###
+`find`和`cursors`的使用是比较直接明了的。还有一些额外的命令，有一些会在后面的章节继续介绍，其他的几乎都只是用在很少见的情况了。到现在为止您应该可以比较自如的在mongo的shell工作，也了解了MongoDB的基础知识了。
 
 \clearpage
 
-## Chapter 4 - Data Modeling ##
-Let's shift gears and have a more abstract conversation about MongoDB. Explaining a few new terms and some new syntax is a trivial task. Having a conversation about modeling with a new paradigm isn't as easy. The truth is that most of us are still finding out what works and what doesn't when it comes to modeling with these new technologies. It's a conversation we can start having, but ultimately you'll have to practice and learn on real code.
+## 第四章 - 数据建模 ##
+这一章我们切换频道，谈谈关于MongoDB的一个比较抽象的话题吧。解释新的名字或者是新的句法都不是什么难事，而用新的范式探讨建模的问题就没那么简单了。事实上当涉及用新技术建模的问题时，我们中的大多数人还仍然在探索这些技术究竟是否合适。这是一个现在就开始的话题，但最终您还是需要自己实践并从真正的代码中去学习。
 
-Compared to most NoSQL solutions, document-oriented databases are probably the least different, compared to relational databases, when it comes to modeling. The differences which exist are subtle but that doesn't mean they aren't important.
+与大多数NoSQL方案相比,在建模方面,面向文档的数据库算是和关系数据库相差最小的。这些差别是很小，但是并不是说不重要。
 
-### No Joins ###
-The first and most fundamental difference that you'll need to get comfortable with is MongoDB's lack of joins. I don't know the specific reason why some type of join syntax isn't supported in MongoDB, but I do know that joins are generally seen as non-scalable. That is, once you start to horizontally split your data, you end up performing your joins on the client (the application server) anyways. Regardless of the reasons, the fact remains that data *is* relational, and MongoDB doesn't support joins.
+### 没有连接 ###
+您要接受的第一个也是最基本的一个差别，就是MongoDB没有连接（join）。我不知道MongoDB不支持某些类型连接句法的具体原因，但是我知道一般而言人们认为连接是不可扩展的。也就是说，一旦开始横向分割数据，最终不可避免的就是在客户端（应用程序服务器）使用连接。且不论原因是什么，事实是数据*是有关系的*（？？），而MongoDB不支持连接。
 
-Without knowing anything else, to live in a join-less world, we have to do joins ourselves within our application's code. Essentially we need to issue a second query to `find` the relevant data. Setting our data up isn't any different than declaring a foreign key in a relational database. Let's give a little less focus to our beautiful `unicorns` and a bit more time to our `employees`. The first thing we'll do is create an employee (I'm providing an explicit `_id` so that we can build coherent examples)
+为了在没有连接的MongoDB中生存下去，在没有其他帮助的情况下，我们必须在自己的应用程序中实现连接。基本上我们需要用第二次查询去`找到`相关的数据。找到并组织这些数据相当于在关系数据库中声明一个外来的键。现在先别管什么`独角兽`了，我们来看看我们的`员工`。首先我们创建一个员工的数据（这次我告诉您具体的`_id`值，这样我们的例子就是一样的了）：
 
 	db.employees.insert({_id: ObjectId("4d85c7039ab0fd70a117d730"), name: 'Leto'})
 
-Now let's add a couple employees and set their manager as `Leto`:
+然后我们再加入几个员工并把`Leto`设成他们的老板：
 
 	db.employees.insert({_id: ObjectId("4d85c7039ab0fd70a117d731"), name: 'Duncan', manager: ObjectId("4d85c7039ab0fd70a117d730")});
 	db.employees.insert({_id: ObjectId("4d85c7039ab0fd70a117d732"), name: 'Moneo', manager: ObjectId("4d85c7039ab0fd70a117d730")});
 
+（有必要再强调一下，`_id`可以是任何的唯一的值。在实际工作中你很可能会用到`ObjectId`， 所以我们在这里也使用它）
 
-(It's worth repeating that the `_id` can be any unique value. Since you'd likely use an `ObjectId` in real life, we'll use them here as well.)
-
-Of course, to find all of Leto's employees, one simply executes:
+显然，要找到Leto的所有员工，只要执行：
 
 	db.employees.find({manager: ObjectId("4d85c7039ab0fd70a117d730")})
 
-There's nothing magical here. In the worst cases, most of the time, the lack of join will merely require an extra query (likely indexed).
+没什么了不起的。在最糟糕的情况下，为弥补连接的缺失需要做的只是再多查询一次而已，该查询很可能是经过索引了的。
 
-#### Arrays and Embedded Documents ####
-Just because MongoDB doesn't have joins doesn't mean it doesn't have a few tricks up its sleeve. Remember when we quickly saw that MongoDB supports arrays as first class objects of a document? It turns out that this is incredibly handy when dealing with many-to-one or many-to-many relationships. As a simple example, if an employee could have two managers, we could simply store these in an array:
+#### 数组和嵌入文档（Embedded Documents） ####
+MongoDB没有连接并不意味着它没有其他的优势。还记得我们曾说过MongoDB支持数组并把它当成文档中的一级对象吗？当处理多对一或是多对多关系的时候，这一特性就显得非常好用了。用一个简单的例子来说明，如果一个员工有两个经理，我们可以把这个关系储存在一个数组当中：
 
 	db.employees.insert({_id: ObjectId("4d85c7039ab0fd70a117d733"), name: 'Siona', manager: [ObjectId("4d85c7039ab0fd70a117d730"), ObjectId("4d85c7039ab0fd70a117d732")] })
 
-Of particular interest is that, for some documents, `manager` can be a scalar value, while for others it can be an array. Our original `find` query will work for both:
+需要注意的是，在这种情况下，有些文档中的`manager`可能是一个向量，而其他的却是数组。在两种情况下，前面的`find`还是一样可以工作：
 
 	db.employees.find({manager: ObjectId("4d85c7039ab0fd70a117d730")})
 
-You'll quickly find that arrays of values are much more convenient to deal with than many-to-many join-tables.
+很快您就会发现数组中的值比起多对多的连接表（join-table）来说要更容易处理。
 
-Besides arrays, MongoDB also supports embedded documents. Go ahead and try inserting a document with a nested document, such as:
+除了数组，MongoDB还支持嵌入文档。尝试插入含有内嵌文档的文档，像这样：
 
 	db.employees.insert({_id: ObjectId("4d85c7039ab0fd70a117d734"), name: 'Ghanima', family: {mother: 'Chani', father: 'Paul', brother: ObjectId("4d85c7039ab0fd70a117d730")}})
 
-In case you are wondering, embedded documents can be queried using a dot-notation:
+也许您也是这样想的：嵌入文档可以用‘.’符号来查询：
 
 	db.employees.find({'family.mother': 'Chani'})
 
-We'll briefly talk about where embedded documents fit and how you should use them.
+就这样，我们简要地介绍了嵌入文档适用的场合以及您应该怎样使用它。
 
 #### DBRef ####
-MongoDB supports something known as `DBRef` which is a convention many drivers support. When a driver encounters a `DBRef` it can automatically pull the referenced document. A `DBRef` includes the collection and id of the referenced document. It generally serves a pretty specific purpose: when documents from the same collection might reference documents from a different collection from each other. That is, the `DBRef` for document1 might point to a document in `managers` whereas the `DBRef` for document2 might point to a document in `employees`.
+ >译者：DBRef可以理解为the reference to a document，文档的引用。不过既然这里已经用了缩写的形式，如果完整翻译过来反倒显得太冗长。于是翻译版本中还是保留了原文的英文记号。
+MongoDB支持一个叫做DBRef的功能，许多MongoDB的驱动也支持这一功能。当驱动遇到一个`DBRef`时它会把当中引用的文档读取出来。`DBRef`包含了集合以及所引用的文档的ID。它通常专门用于这样的场合：相同集合中的文档需要相互引用另外一个集合中的文档。例如，文档1的`DBRef`可能指向`managers`中的一个文档，而文档2中的`DBRef`可能指向`employees`中的一个文档。（？？）
 
+#### 反规范化（Denormalization） ####
+代替连接的另一种方法就是反规范化数据。在过去，反规范化是为性能敏感代码所设，或者是需要数据快照（例如审计日志）的时候才应用的。然而，随着NoSQL的日渐普及，有许多这样的数据库并不提供连接操作，于是作为规范建模的一部分，反规范化就越来越常见了。这样说并不是说您就需要为每个文档中的每一条信息创建副本。与此相反，与其在设计的时候被复制数据的担忧牵着走，还不如按照不同的信息应该归属于相应的文档这一思路来对数据建模。
 
-#### Denormalization ####
-Yet another alternative to using joins is to denormalize your data. Historically, denormalization was reserved for performance-sensitive code, or when data should be snapshotted (like in an audit log). However, with the ever-growing popularity of NoSQL, many of which don't have joins, denormalization as part of normal modeling is becoming increasingly common. This doesn't mean you should duplicate every piece of information in every document. However, rather than letting fear of duplicate data drive your design decisions, consider modeling your data based on what information belongs to what document.
+比如说，假设您在编写一个论坛的应用程序。把一个`user`和一篇`post`关联起来的传统方法是在`posts`中加入一个`userid`的列。这样的模型中，如果要显示`posts`就不得不读取（连接）`users`。一种简单可行的替代方案就是直接把`name`和`userid`存储在`post`中。您甚至可以用嵌入文档来实现，比如说`user: {id: ObjectId('Something'), name: 'Leto'}`。当然，如果允许用户更改他们的用户名，那么每当有用户名修改的时候，您就需要去更新所有的文档了（这需要一个额外的查询）。
 
-For example, say you are writing a forum application. The traditional way to associate a specific `user` with a `post` is via a `userid` column within `posts`. With such a model, you can't display `posts` without retrieving (joining to) `users`. A possible alternative is simply to store the `name` as well as the `userid` with each `post`. You could even do so with an embedded document, like `user: {id: ObjectId('Something'), name: 'Leto'}`. Yes, if you let users change their name, you'll have to update each document (which is 1 extra query).
+对一些人来说改用这种方法并非易事。甚至在一些情况下根本行不通。不过别不敢去尝试这种方法：有时候它不仅可行，而且就是正确的方法。
 
-Adjusting to this kind of approach won't come easy to some. In a lot of cases it won't even make sense to do this. Don't be afraid to experiment with this approach though. It's not only suitable in some circumstances, but it can also be the right way to do it.
+#### 您应该选择哪一种？ ####
+当处理一对多或是多对多问题的时候，采用id数组往往都是正确的策略。可以这么说，`DBRef`并不是那么常用，虽然您完全可以试着采用这项技术。这使得新手们在面临选择嵌入文档还是手工引用时犹豫不决。（？？）
 
-#### Which Should You Choose? ####
-Arrays of ids are always a useful strategy when dealing with one-to-many or many-to-many scenarios. It's probably safe to say that `DBRef` aren't used very often, though you can certainly experiment and play with them. That generally leaves new developers unsure about using embedded documents versus doing manual referencing.
-
-First, you should know that an individual document is currently limited to 4 megabytes in size. Knowing that documents have a size limit, though quite generous, gives you some idea of how they are intended to be used. At this point, it seems like most developers lean heavily on manual references for most of their relationships. Embedded documents are frequently leveraged, but mostly for small pieces of data which we want to always pull with the parent document. A real world example I've used is to store an `accounts` document with each user, something like:
+首先，要知道目前一个单独的文档的大小限制是4MB，虽然已经比较大了。了解了这个限制可以为如何使用文档提供一些思路。目前看来多数的开发者还是大量地依赖手工引用来维护数据的关系。嵌入文档经常被使用，but mostly for small pieces of data which we want to always pull with the parent document。一个真实的例子，我把`accounts`文档嵌入存储在用户的文档中，就像这样：
 
 	db.users.insert({name: 'leto', email: 'leto@dune.gov', account: {allowed_gholas: 5, spice_ration: 10}})
 
-That doesn't mean you should underestimate the power of embedded documents or write them off as something of minor utility. Having your data model map directly to your objects makes things a lot simpler and often does remove the need to join. This is especially true when you consider that MongoDB lets you query and index fields of an embedded document.
+这不是说您就应该低估嵌入文档的作用，也不是说应该把它当成是鲜少用到的工具并直接忽略。将数据模型直接映射到目标对象上可以使问题变得更加简单，也往往因此而不再需要连接操作。当您知道MongoDB允许对嵌入文档的域进行查询并做索引后，这个说法就尤其显得正确了。
 
-### Few or Many Collections ###
-Given that collections don't enforce any schema, it's entirely possible to build a system using a single collection with a mismatch of documents.  From what I've seen, most MongoDB systems are laid out similarly to what you'd find in a relational system. In other words, if it would be a table in a relational database, it'll likely be a collection in MongoDB (many-to-many join tables being an important exception).
+### 集合：少一些还是多一些？ ###
+既然集合不强制使用模式，那么就完全有可能用一个单一的集合以及一个不匹配的文档构建一个系统。以我所见过的情况，大部分的MongoDB系统都像您在关系数据库中所见到的那样布局。换句话说，如果在关系数据库中会用表，那么很有可能在MongoDB中就要用集合（多对多连接表在这里是一个不可忽视的例外）
 
-The conversation gets even more interesting when you consider embedded documents. The example that frequently comes up is a blog. Should you have a `posts` collection and a `comments` collection, or should each `post` have an array of `comments` embedded within it. Setting aside the 4MB limit for the time being (all of Hamlet is less than 200KB, just how popular is your blog?), most developers still prefer to separate things out. It's simply cleaner and more explicit.
+当把嵌入文档引进来的时候，讨论就会变得更加有意思了。最常见的例子就是博客系统。是应该分别维护`posts`和`comments`两个集合，还是在每个`post`中嵌入一个`comments`数组？暂且不考虑那个4MB的限制（哈姆雷特所有的评论也不超过200KB，谁的博客会比他更受欢迎？），大多数的开发者还是倾向于把数据划分开。因为这样既简洁又明确。
 
-There's no hard rule (well, aside from 4MB). Play with different approaches and you'll get a sense of what does and does not feel right.
+没有什么硬性的规定（呃，除了4MB的限制）。做了不同的尝试之后您就可以凭感觉知道怎样做是对的了。
 
-### In This Chapter ###
-Our goal in this chapter was to provide some helpful guidelines for modeling your data in MongoDB. A starting point if you will. Modeling in a document-oriented system is different, but not too different than a relational world. You have a bit more flexibility and one constraint, but for a new system, things tend to fit quite nicely. The only way you can go wrong is by not trying.
+### 本章小结 ###
+本章的目的在于为您用MongoDB给数据建模提供一些有用的指引。用面向文档的系统来建模与用关系数据库不一样，但也不会相差很大。用MongoDB会有一个限制还有多出一些灵活性，不过对于新系统来说，一切都会很好的运行起来的。唯一有可能出错的情况就是不去尝试。
 
 \clearpage
 
-## Chapter 5 - When To Use MongoDB ##
-By now you should have a good enough understanding of MongoDB to have a feel for where and how it might fit into your existing system. There are enough new and competing storage technologies that it's easy to get overwhelmed by all of the choices.
+## 第五章 - 何时使用MongoDB ##
+至此您应该对MongoDB有了足够的了解并且知道在现有系统中何处以及怎样应用它了。然而，新的存储技术不止一个，让人很容易就被这么多的可选方案搞得不知所措。
 
-For me, the most important lesson, which has nothing to do with MongoDB, is that you no longer have to rely on a single solution for dealing with your data. No doubt, a single solution has obvious advantages and for a lot projects, possibly even most, a single solution is the sensible approach. The idea isn't that you must use different technologies, but rather that you can. Only you know whether the benefits of introducing a new solution outweigh the costs.
+对我来说，虽然与MongoDB无关，但最重要的一点是再也不会依赖于某一单一的方案来处理数据了。当然，对很多项目，很可能是大多数项目而言，采用单一的解决方案有很明显的好处，甚至是明智的选择。然而这里要强调的是您并非必须使用不同的技术，而是您可以这样做。只有您知道引入新技术带来的好处会不会大于采用新技术所需的代价。
 
-With that said, I'm hopeful that what you've seen so far has made you see MongoDB as a general solution. It's been mentioned a couple times that document-oriented databases share a lot in common with relational databases. Therefore, rather than tiptoeing around it, let's simply state that MongoDB should be seen as a direct alternative to relational databases. Where one might see Lucene as enhancing a relational database with full text indexing, or Redis as a persistent key-value store, MongoDB is a central repository for your data.
+说了这些，我希望基于目前对MongoDB的介绍，您会把它当成一个通用的方案。前面多次提到，面向文档的数据库和关系数据库有很多的共同点。因此，与其对之避而不谈，不如干脆说MongoDB可以直接作为关系数据库的alternative（？？）吧。只要是Lucene可以加强关系数据库全文索引能力的场合，或者是Redis可以当作持久性键-值存储的地方，MongoDB都可以用来集中存储管理这些数据。
 
-Notice that I didn't call MongoDB a *replacement* for relational databases, but rather an *alternative*. It's a tool that can do what a lot of other tools can do. Some of it MongoDB does better, some of it MongoDB does worse. Let's dissect things a little further.
+注意，我没有说MongoDB是关系数据库的*replacement*（？？）， 而是*alternative*（？？）。作为一个工具，MongoDB能做的很多其他的工具也可以做到。有些方面MongoDB做得好些，有些方面差些。那么我们现在就来做进一步的分析。
 
-### Schema-less ###
-An oft-touted benefit of document-oriented database is that they are schema-less. This makes them much more flexible than traditional database tables. I agree that schema-less is a nice feature, but not for the main reason most people mention.
+### 无模式 ###
+面向文档的数据库常见的一个卖点就是它是无模式的。这使得它比传统数据库的表更加灵活。我同意无模式是很不错的一个特性，但不是因为大多数人说的那些原因。
 
-People talk about schema-less as though you'll suddenly start storing a crazy mismatch of data. There are domains and data sets which can really be a pain to model using relational databases, but I see those as edge cases. Schema-less is cool, but most of your data is going to be highly structured. It's true that having an occasional mismatch can be handy, especially when you introduce new features, but in reality it's nothing a nullable column probably wouldn't solve just as well.
+当人们谈到无模式时，神奇得就好像忽然间我们就可以把一堆毫不匹配的数据通通塞进去一样。确实有这么一些领域或是数据格式，如果用关系数据库来建模是很痛苦的，但我认为这些只是一些不常见的边缘情况。无模式是很酷，不过系统的大部分数据都将是有着良好结构的。偶尔使用不匹配是会很方便，尤其是在引入新功能的时候，可是事实上也可以考虑一下可以为空的列，没有什么是它不能解决的。（？？）
 
-For me, the real benefit of schema-less design is the lack of setup and the reduced friction with OOP. This is particularly true when you're working with a static language. I've worked with MongoDB in both C# and Ruby, and the difference is striking. Ruby's dynamism and its popular ActiveRecord implementations already reduce much of the object-relational impedance mismatch. That isn't to say MongoDB isn't a good match for Ruby, it really is. Rather, I think most Ruby developers would see MongoDB as an incremental improvement, whereas C# or Java developers would see a fundamental shift in how they interact with their data.
+我认为无模式设计的真正益处在于不需要过多的设置，以及与面向对象编程语言结合使用的时候更少的阻力。这一点在使用静态语言的时候更是如此。我曾在C#和Ruby上使用过MongoDB，其间的差别不是一般的大。Ruby的动态特性还有广受欢迎的ActiveRecord实现使得这门语言本身就已经降低了面向关系和面向对象编程之间差异带来的难度。并不是说MongoDB和Ruby不是一个好的组合，相反的它们还真的很搭。我要说的是Ruby程序员眼中MongoDB带来的应该只是一些改进，而对于C#或者Java开发者来说，MongoDB带来的是处理数据方式的翻天覆地的转变。
 
-Think about it from the perspective of a driver developer. You want to save an object? Serialize it to JSON (technically BSON, but close enough) and send it to MongoDB. There is no property mapping or type mapping. This straightforwardness definitely flows to you, the end developer.
+以一个驱动开发者（？？）的角度来看，想要保存一个对象？把数据串行化为JSON（严格来说应该是BSON，不过JSON也足够接近了）再发送给MongoDB。不需要做属性或类型映射。作为终端开发者的您自然也得到了好处。（？？）
 
-### Writes ###
-One area where MongoDB can fit a specialized role is in logging. There are two aspects of MongoDB which make writes quite fast. First, you can send a write command and have it return immediately without waiting for it to actually write. Secondly, with the introduction of journaling in 1.8, and enhancements made in 2.0, you can control the write behavior with respect to data durability. These settings, in addition to specifying how many servers should get your data before being considered successful, are configurable per-write, giving you a great level of control over write performance and data durability.
+### 写操作 ###
+MongoDB擅长的一个特别角色是日志的记录。MongoDB有两点使得它的写操作非常快。第一，发出一条写命令后它会马上返回而不等待真正的写动作执行。第二，随着1.8中引入的日记功能（journaling），以及2.0中所做的优化加强，现在已经可以根据数据持久性来控制写操作的行为。这些设定的值，加上指定多少个服务器得到一份数据后才算是一次成功的写操作，在每次写的时候都是可以设置的。这些使得对写操作的性能以及数据的持久性的控制都上了一个档次。
 
-In addition to these performance factors, log data is one of those data sets which can often take advantage of schema-less collections. Finally, MongoDB has something called a [capped collection](http://www.mongodb.org/display/DOCS/Capped+Collections). So far, all of the implicitly created collections we've created are just normal collections. We can create a capped collection by using the `db.createCollection` command and flagging it as capped:
+除了上述性能上的因素，日志数据还是这样的一种数据格式：它们用无模式集合往往更有优势。最后，MongoDB还有一项技术叫做[定量集合（capped collection）](http://www.mongodb.org/display/DOCS/Capped+Collections)。目前为止，我们所创建的集合都是隐式创建的普通集合。我们可以用`db.createCollection`命令创建并标明它是给标量集合：
 
-	//limit our capped collection to 1 megabyte
+	//限制标量集合的大小为1MB
 	db.createCollection('logs', {capped: true, size: 1048576})
 
-When our capped collection reaches its 1MB limit, old documents are automatically purged. A limit on the number of documents, rather than the size, can be set using `max`. Capped collections have some interesting properties. For example, you can update a document but it can't grow in size. Also, the insertion order is preserved, so you don't need to add an extra index to get proper time-based sorting.
+当上面的定量集合增长到1MB的限制时后，旧的文档就会被自动删除。可以用`max`来限制文档的个数而不是整个集合的尺寸。定量集合有一些有意思的特性。比如说，你可以不断的更新文档，但是文档不会变大。同时，它会保存插入的顺序，因此没有需要添加额外的索引来实现基于时间的排序。
 
-This is a good place to point out that if you want to know whether your write encountered any errors (as opposed to the default fire-and-forget), you simply issue a follow-up command: `db.getLastError()`. Most drivers encapsulate this as a *safe write*, say by specifying `{:safe => true}` as a second parameter to `insert`.
+是时候说明这个了：如果需要知道写操作有没有出错（这和默认的写完就忘的行为相反），只需要再发一个命令：`db.getLastError()`。多数的驱动都会把这种行为封装成一个*安全的写操作*，用`{:safe => true}`作为`insert`的第二个参数来声明。
 
-### Durability ###
-Prior to version 1.8, MongoDB didn't have single-server durability. That is, a server crash would likely result in lost data. The solution had always been to run MongoDB in a multi-server setup (MongoDB supports replication). One of the major features added to 1.8 was journaling. To enable it add a new line with `journal=true` to the `mongodb.config` file we created when we first setup MongoDB (and restart your server if you want it enabled right away). You probably want journaling enabled (it'll be a default in a future release). Although, in some circumstances the extra throughput you get from disabling journaling might be a risk you are willing to take. (It's worth pointing out that some types of applications can easily afford to lose data).
+### 持久性（Durability） ###
+在1.8版之前，MongoDB是不支持单服务器的持久性的。也就是说，一个服务器当机就会导致数据丢失。当时的解决方法就是在多台服务器上运行MongoDB（MongoDB支持复制）。新加入到1.8的一个重要特性就是日记（journaling）。打开这个功能需要在我们最早设置MongoDB时创建的`mongodb.config`文件中加入一行`journal=true`（如果想要立即生效，还需要重启服务器）。您应该是会想要打开这项功能的。（在以后的版本中将会默认打开）。不过，在有些情况下，您可能会要关闭日记以增加吞吐量，哪怕这样做存在风险。（需要指出的是有些应用对损失一些数据还是可以接受的）
 
-Durability is only mentioned here because a lot has been made around MongoDB's lack of single-server durability. This'll likely show up in Google searches for some time to come. Information you find about this missing feature is simply out of date.
+关于持久性的话题只会在这里提及，因为为了克服MongoDB缺乏单服务器持久性的弊病人们已经做了大量的工作。这段话还可能会出现在以后的Google搜索结果中。您看到的那些说MongoDB这个缺点的信息都是过时了的。
 
-### Full Text Search ###
-True full text search capability is something that'll hopefully come to MongoDB in a future release. With its support for arrays, basic full text search is pretty easy to implement. For something more powerful, you'll need to rely on a solution such as Lucene/Solr. Of course, this is also true of many relational databases.
+### 全文搜索 ###
+真正的全文搜索功能希望能够在将来的MongoDB版本中实现。有了它对数组的支持，基本的权威你搜索应该是很容易实现的。至于更高级一点的功能，就需要依仗像Lucene/Solr之类的方案了。当然，这一点上其他很多关系数据库也是一样的。
 
-### Transactions ###
-MongoDB doesn't have transactions. It has two alternatives, one which is great but with limited use, and the other that is a cumbersome but flexible.
+### 事务（transaction） ###
+MongoDB是不支持事务的。不过它有两个替代的方案，其中一个很不错但是不怎么有人用，另外一个很麻烦同时又很灵活。
 
-The first is its many atomic operations. These are great, so long as they actually address your problem. We already saw some of the simpler ones, like `$inc` and `$set`. There are also commands like `findAndModify` which can update or delete a document and return it atomically.
+第一个就是MongoDB的众多原子操作。只要它们能够解决你的问题，都很好用。之前已经介绍过一些简单的诸如`$inc`和`$set`。还有像`findAndModify`这样的原子操作，可以更新或是删除一个文档并返回修改过后的文档，且所有动作在一个原子操作内完成。
 
-The second, when atomic operations aren't enough, is to fall back to a two-phase commit. A two-phase commit is to transactions what manual dereferencing is to joins. It's a storage-agnostic solution that you do in code.  Two-phase commits are actually quite popular in the relational world as a way to implement transactions across multiple databases. The MongoDB website [has an example](http://www.mongodb.org/display/DOCS/two-phase+commit) illustrating the most common scenario (a transfer of funds). The general idea is that you store the state of the transaction within the actual document being updated and go through the init-pending-commit/rollback steps manually.
+当原子操作不能满足要求时，可以退而尝试第二种方案：两阶段提交。两阶段提交之于事务就好比手工解引用（dereference，译者：关于这个词的翻译有很多种，用引、提领、解引用等，大家知道是什么意思就好。）之于连接。这是一个独立于存储系统的方案，需要您在代码中实现。（？？）两阶段提交其实在关系数据库中有普遍的应用，用以在多个数据库之间实现事务。MongoDB的网站有[一个例子](http://www.mongodb.org/display/DOCS/two-phase+commit)演示了最常见的场合（资金转账）。其主要思想就是把事务的状态储存在需要更新的文档中，并手工一步一步完成初始化-等待-提交或是回滚的每一个步骤。
 
-MongoDB's support for nested documents and schema-less design makes two-phase commits slightly less painful, but it still isn't a great process, especially when you are just getting started with it.
+MongoDB对嵌套文档以及无模式的支持使得两阶段提交稍微不那么痛苦了，不过这依旧不是一个很好的流程，尤其是当您刚刚开始学/用它的时候。
 
-### Data Processing ###
-MongoDB relies on MapReduce for most data processing jobs. It has some [basic aggregation](http://www.mongodb.org/display/DOCS/Aggregation) capabilities, but for anything serious, you'll want to use MapReduce. In the next chapter we'll look at MapReduce in detail. For now you can think of it as a very powerful and different way to `group by` (which is an understatement). One of MapReduce's strengths is that it can be parallelized for working with large sets of data. However, MongoDB's implementation relies on JavaScript which is single-threaded. The point? For processing of large data, you'll likely need to rely on something else, such as Hadoop. Thankfully, since the two systems really do complement each other, there's a [MongoDB adapter for Hadoop](https://github.com/mongodb/mongo-hadoop).
+### 数据处理 ###
+MongoDB依靠MapReduce来完成大部分的数据处理工作。它有一些[基本的聚合能力](http://www.mongodb.org/display/DOCS/Aggregation)，尽管如此，无论在何种情况下您还是应该使用MapReduce。下一章我们将详细讨论MapReduce。现在把它当成是一个非常强大的工具，另外一种实现`group by`的方法。（这样说事实上低估了MapReduce）MapReduce的一个长处是它可以并行地处理大量的数据。可是MongoDB的实现却依赖于单线程的JavaScript。这又意味着什么呢？意味着如果是处理大量的数据，很可能还是需要用其他的工具，比如说Hadoop。幸好，这两个系统很好的实现了互补，且看这个[MongoDB的Hadoop适配器](https://github.com/mongodb/mongo-hadoop)。
 
-Of course, parallelizing data processing isn't something relational databases excel at either. There are plans for future versions of MongoDB to be better at handling very large sets of data.
+当然，并行处理数据也不是关系数据库所擅长的。现在已经有计划在将来的MongoDB版本中加强处理非常大的数据的能力。
 
-### Geospatial ###
-A particularly powerful feature of MongoDB is its support for geospatial indexes. This allows you to store x and y coordinates within documents and then find documents that are `$near` a set of coordinates or `$within` a box or circle. This is a feature best explained via some visual aids, so I invite you to try the [5 minute geospatial interactive tutorial](http://tutorial.mongly.com/geo/index), if you want to learn more.
+### 地理空间 ###
+MongoDB的另外一个很强大的功能就是它对地理信息索引功能的支持。这个功能允许把X和Y坐标储存在文档中，然后可以用`$near`查找文档中靠近某个坐标的点，或是用`$within`找出位于某个矩形或是一个圆形中的点。这个功能可以用一些可视的例子来演示，如果您想了解多一些，我邀请您来试试这个[5分钟交互式地理空间教程](http://tutorial.mongly.com/geo/index)
 
-### Tools and Maturity ###
-You probably already know the answer to this, but MongoDB is obviously younger than most relational database systems. This is absolutely something you should consider. How much a factor it plays depends on what you are doing and how you are doing it. Nevertheless, an honest assessment simply can't ignore the fact that MongoDB is younger and the available tooling around isn't great (although the tooling around a lot of very mature relational databases is pretty horrible too!). As an example, the lack of support for base-10 floating point numbers will obviously be a concern (though not necessarily a show-stopper) for systems dealing with money.
+### 成熟度与可用工具 ###
+你应该很可能早已经知道了答案，不过MongoDB明显比大多数的关系数据库要年轻。这个当然是您需要考虑的。究竟这个因素有多重要取决于您在做的是什么系统以及将怎样实现它。无论怎样，一个客观的评价是不会忽略这一事实：MongoDB很年轻而且周边可用的工具也不是很好用（虽然很多非常成熟的关系数据库可用的工具也很糟糕！）例如，不能支持十进制浮点数对货币数据系统来说就是一个很明显的问题（虽然不一定是致命的缺陷）
 
-On the positive side, drivers exist for a great many languages, the protocol is modern and simple, and development is happening at blinding speeds. MongoDB is in production at enough companies that concerns about maturity, while valid, are quickly becoming a thing of the past.
+正面点来看，MongoDB为很多语言提供了驱动，它的协议很现代简约，开发速度非常快。有很多对不成熟的工具心存疑虑的公司都将MongoDB用在了自己已经发布的产品中。这些疑虑当然是有根据的，可是短时间后都已经成为了历史。
 
-### In This Chapter ###
-The message from this chapter is that MongoDB, in most cases, can replace a relational database. It's much simpler and straightforward; it's faster and generally imposes fewer restrictions on application developers. The lack of transactions can be a legitimate and serious concern. However, when people ask *where does MongoDB sit with respect to the new data storage landscape?* the answer is simple: **right in the middle**.
+
+### 本章小结 ###
+本章要传递的信息是大多数情况下MongoDB都可以替代关系数据库。它更简单更直接，更快而且对应用程序开发者的约束更少。MongoDB不支持事务确实是一个缺点也值得慎重考虑。但是当人们问道*在新数据存储技术中MongoDB的地位如何*时，答案很简单：**如日中天**。（？？）
 
 \clearpage
 
