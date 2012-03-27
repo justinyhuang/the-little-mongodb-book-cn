@@ -408,7 +408,7 @@ MongoDB擅长的一个特别角色是日志的记录。MongoDB有两点使得它
 
 当上面的定量集合增长到1MB的限制时后，旧的文档就会被自动删除。可以用`max`来限制文档的个数而不是整个集合的尺寸。定量集合有一些有意思的特性。比如说，你可以不断的更新文档，但是文档不会变大。同时，它会保存插入的顺序，因此没有需要添加额外的索引来实现基于时间的排序。
 
-是时候说明这个了：如果需要知道写操作有没有出错（这和默认的写完就忘的行为相反），只需要再发一个命令：`db.getLastError()`。多数的驱动都会把这种行为封装成一个*安全的写操作*，用`{:safe => true}`作为`insert`的第二个参数来声明。
+是时候说明这个了：如果需要知道写操作有没有出错（这和默认的射后不理的写行为相反）（译者：fire-and-forget，[射后不理](http://zh.wikipedia.org/wiki/%E5%B0%84%E5%BE%8C%E4%B8%8D%E7%90%86)）只需要再发一个命令：`db.getLastError()`。多数的驱动都会把这种行为封装成一个*安全的写操作*，用`{:safe => true}`作为`insert`的第二个参数来声明。
 
 ### 持久性（Durability） ###
 在1.8版之前，MongoDB是不支持单服务器的持久性的。也就是说，一个服务器当机就会导致数据丢失。当时的解决方法就是在多台服务器上运行MongoDB（MongoDB支持复制）。新加入到1.8的一个重要特性就是日记（journaling）。打开这个功能需要在我们最早设置MongoDB时创建的`mongodb.config`文件中加入一行`journal=true`（如果想要立即生效，还需要重启服务器）。您应该是会想要打开这项功能的。（在以后的版本中将会默认打开）。不过，在有些情况下，您可能会要关闭日记以增加吞吐量，哪怕这样做存在风险。（需要指出的是有些应用对损失一些数据还是可以接受的）
@@ -606,107 +606,107 @@ MongoDB中是对集合使用`mapReduce`的。`mapReduce`需要一个映射函数
 \clearpage
 
 ## 第七章 - 性能与工具 ##
-In this last chapter, we look at a few performance topics as well as some of the tools available to MongoDB developers. We won't dive deeply into either topic, but we will examine the most import aspects of each.
+最后一章，我们将介绍一些性能相关的话题，以及MongoDB开发者可以使用的工具。我们不会过深地涉及这些话题，但当中重要的部分都会有所介绍。
 
-### Indexes ###
-At the very beginning we saw the special `system.indexes` collection which contains information on all the indexes in our database. Indexes in MongoDB work a lot like indexes in a relational database: they help improve query and sorting performance. Indexes are created via `ensureIndex`:
+### 索引 ###
+最开始的时候我们介绍了特殊的`system.indexes`集合，它含有数据库中所有索引的信息。MongoDB中的索引和关系数据库很像：都有助于改进查询和排序的性能。索引是通过`ensureIndex`创建的：
 
-	// where "name" is the fieldname
+	// "name"是域的名字
 	db.unicorns.ensureIndex({name: 1});
 
-And dropped via `dropIndex`:
+并由`dropIndex`丢弃：
 
 	db.unicorns.dropIndex({name: 1});
 
-A unique index can be created by supplying a second parameter and setting `unique` to `true`:
+要创建唯一的索引可以将第二个参数`unique`设为`true`：
 
 	db.unicorns.ensureIndex({name: 1}, {unique: true});
 
-Indexes can be created on embedded fields (again, using the dot-notation) and on array fields. We can also create compound indexes:
+索引可以在嵌入域（使用`.`符号）和数组域上。也可以创建复合索引：
 
 	db.unicorns.ensureIndex({name: 1, vampires: -1});
 
-The order of your index (1 for ascending, -1 for descending) doesn't matter for a single key index, but it can have an impact for compound indexes when you are sorting or using a range condition.
+索引的顺序（1为升序，-1为降序）对于单键索引没有关系，不过对于复合索引来说在排序或是使用范围条件时就有影响了。
 
-The [indexes page](http://www.mongodb.org/display/DOCS/Indexes) has additional information on indexes.
+[索引页](http://www.mongodb.org/display/DOCS/Indexes)有更多关于索引的信息。
 
 ### Explain ###
-To see whether or not your queries are using an index, you can use the `explain` method on a cursor:
+要知道索引有没有使用索引，可以对游标使用`explain`方法：
 
 	db.unicorns.find().explain()
 
-The output tells us that a `BasicCursor` was used (which means non-indexed), 12 objects were scanned, how long it took, what index, if any was used as well as a few other pieces of useful information.
+命令的结果告诉我们查询使用的是`BasicCursor`（也就是说没有用索引），扫描了12个对象，用了多长时间， 是否用了什么索引，如果有用索引的话还有一些额外有用的信息。
 
-If we change our query to use an index, we'll see that a `BtreeCursor` was used, as well as the index used to fulfill the request:
+如果我们改用索引来查询，我们会看到的查询使用的`BtreeCursor`，以及用以查询的索引：
 
 	db.unicorns.find({name: 'Pilot'}).explain()
 
-### Fire And Forget Writes ###
-We previously mentioned that, by default, writes in MongoDB are fire-and-forget. This can result in some nice performance gains at the risk of losing data during a crash. An interesting side effect of this type of write is that an error is not returned when an insert/update violates a unique constraint. In order to be notified about a failed write, one must call `db.getLastError()` after an insert. Many drivers abstract this detail away and provide a way to do a *safe* write - often via an extra parameter.
+### 射后不理的写操作 ###
+之前我们有提到过，MongoDB中的写操作默认为[射后不理](http://zh.wikipedia.org/wiki/%E5%B0%84%E5%BE%8C%E4%B8%8D%E7%90%86)。这样做可以获得一定的性能提高，同时也带来了系统奔溃时丢失数据的风险。有意思的是这种类型的写操作在插入/更新破坏了某唯一的约束时，是不返回错误的。若需要得到写失败的通知，就要在插入后调用`db.getLastError()`。很多驱动都把这一细节封装起来了，取而代之的是*安全的写*操作——往往会多提供一个参数用来设置。
 
-Unfortunately, the shell automatically does safe inserts, so we can't easily see this behavior in action.
+可惜的是shell并不提供安全的插入，因此我们就无法实验这一特性了。
 
-### Sharding ###
-MongoDB supports auto-sharding. Sharding is an approach to scalability which separates your data across multiple servers. A naive implementation might put all of the data for users with a name that starts with A-M on server 1 and the rest on server 2. Thankfully, MongoDB's sharding capabilities far exceed such a simple algorithm. Sharding is a topic well beyond the scope of this book, but you should know that it exists and that you should consider it should your needs grow beyond a single server.
+### 分片（sharding） ###
+MongoDB支持自动分片。分片技术是将数据水平切分存储在多台服务器上以实现可扩展性的一种方法。比较简单的实现可以将所有以A至M字母开头的用户信息存在1号服务器上然后剩下的都存在2号服务器上。幸运的是，MongoDB的分片功能远远超过了这种简单的方法。不过分片已经超出了本书要讨论的范畴，但您应该知道它的存在并且在系统需要用到多台服务器时会考虑这种技术。
 
-### Replication ###
-MongoDB replication works similarly to how relational database replication works. Writes are sent to a single server, the master, which then synchronizes itself to one or more other servers, the slaves. You can control whether reads can happen on slaves or not, which can help distribute your load at the risk of reading slightly stale data. If the master goes down, a slave can be promoted to act as the new master. Again, MongoDB replication is outside the scope of this book.
+### 复制 ###
+MongoDB的复制于关系数据库的复制类似。写入的数据发送到主服务器，主服务器再与其他从服务器进行同步。读操作可以选择在从服务器上做或者是在主服务器上做。当主服务器当机的时候，可以将一台从服务器升级为新的主服务器。这样做可以分散系统的负荷，不过有读到陈旧数据的可能。MongoDB的复制也超出了本书要讨论的范围。
 
- While replication can improve performance (by distributing reads), its main purpose is to increase reliability. Combining replication with sharding is a common approach. For example, each shard could be made up of a master and a slave. (Technically you'll also need an arbiter to help break a tie should two slaves try to become masters. But an arbiter requires very few resources and can be used for multiple shards.)
+虽然复制可以提高性能（通过分散读操作），它的主要作用还是增加可靠性。将分片和复制结合是一种很普遍的做法。例如，每一个分片都可以由一个主服务器和一个从服务器维护。（从技术角度上还需要一个仲裁机以解决两个从服务器试图升级为主服务器的问题。不过仲裁机耗费的资源非常少，因此可以用在多个分片上）
 
-### Stats ###
-You can obtain statistics on a database by typing `db.stats()`. Most of the information deals with the size of your database. You can also get statistics on a collection, say `unicorns`, by typing `db.unicorns.stats()`. Again, most of this information relates to the size of your collection.
+### 统计 ###
+可以通过`db.stats()`获得数据库的数据统计信息。当中的大多数都和数据库的大小有关。也可以获取某个集合的统计信息。比如说可以用`db.unicorns.stats()`获得`unicorns`的相关信息。这些信息大部分还是和集合的大小相关。
 
-### Web Interface ###
-Included in the information displayed on MongoDB's startup was a link to a web-based administrative tool (you might still be able to see if if you scroll your command/terminal window up to the point where you started `mongod`). You can access this by pointing your browser to <http://localhost:28017/>. To get the most out of it, you'll want to add `rest=true` to your config and restart the `mongod` process. The web interface gives you a lot of insight into the current state of your server.
+### 网络接口 ###
+在MongoDB启动时的信息中有一个基于网络的管理工具的链接（如果您在shell中向上翻页到启动`mongod`时的部分应该还可以看到）。可以在浏览器中输入<http://localhost:28017/>以访问该工具。为了更好的使用这个工具，还需要在配置文件中加入`rest=true`并重启`mongod`进程。网络接口提供了很多关于服务器当前状态的信息。
 
-### Profiler ###
-You can enable the MongoDB profiler by executing:
+### 分析器（Profiler） ###
+下面的命令将启动MongoDB的分析器：
 
 	db.setProfilingLevel(2);
 
-With it enabled, we can run a command:
+启动之后，可以运行下面的命令：
 
 	db.unicorns.find({weight: {$gt: 600}});
 
-And then examine the profiler:
+再读取分析器中的值：
 
 	db.system.profile.find()
 
-The output tells us what was run and when, how many documents were scanned, and how much data was returned.
+最后的输出提供了这些信息：什么时候运行了什么命令，有多少文档被扫描过以及返回了多少数据。
 
-You can disable the profiler by calling `setProfileLevel` again but changing the argument to `0`. Another option is to specify `1` which will only profile queries that take more than 100 milliseconds. Or, you can specify the minimum time, in milliseconds, with a second parameter:
+可以将参数设成`0`，用`setProfileLevel`再次关闭分析器。当把参数设为`1`时，只有对耗时多于100毫秒的查询才会进行分析。或者也可以在第二个参数中指明最少的时间，以毫秒为单位：
 
-	//profile anything that takes more than 1 second
+	//分析所有耗费时间多于一秒的操作
 	db.setProfilingLevel(1, 1000);
 
-### Backups and Restore ###
-Within the MongoDB `bin` folder is a `mongodump` executable. Simply executing `mongodump` will connect to localhost and backup all of your databases to a `dump` subfolder. You can type `mongodump --help` to see additional options. Common options are `--db DBNAME` to back up a specific database and `--collection COLLECTIONAME` to back up a specific collection. You can then use the `mongorestore` executable, located in the same `bin` folder, to restore a previously made backup. Again, the `--db` and `--collection` can be specified to restore a specific database and/or collection.
+### 备份和恢复 ###
+在MongoDB的`bin`目录中有一个`mongodump`可执行文件。执行这一文件将连接到localhost并且将所有的数据库备份到一个叫做`dump`的子目录中。更多的选项可以通过`mongodump --help`获得。常见的选项有`--db DBNAME`，用以对某一特定的数据库进行备份，还有`--collection COLLECTIONAME`可以用来备份一个集合。利用`bin`下的`mongorestore`可以恢复上一次的备份。同样的，用`--db`和`--collection`参数可以恢复某一指定的数据库或者集合。
 
-For example, to back up our `learn` database to a `backup` folder, we'd execute (this is its own executable which you run in a command/terminal window, not within the mongo shell itself):
+例如，以下命令将把我们创建的`learn`数据库备份到`backup`目录（该命令是在终端窗口下输入的，而非mongo的shell中）：
 
 	mongodump --db learn --out backup
 
-To restore only the `unicorns` collection, we could then do:
+如果只需要恢复`unicorns`集合，可以这样做：
 
 	mongorestore --collection unicorns backup/learn/unicorns.bson
 
-It's worth pointing out that `mongoexport` and `mongoimport` are two other executables which can be used to export and import data from JSON or CSV. For example, we can get a JSON output by doing:
+需要指出的是`mongoexport`和`mongoimport`这两个可执行文件可以用以输出和导入JSON或是CSV中的数据。例如可以输出为JSON格式的数据：
 
 	mongoexport --db learn -collection unicorns
 
-And a CSV output by doing:
+或者是CSV格式的输出：
 
 	mongoexport --db learn -collection unicorns --csv -fields name,weight,vampires
 
-Note that `mongoexport` and `mongoimport` cannot always represent your data. Only `mongodump` and `mongorestore` should ever be used for actual backups.
+请注意，`mongoexport`和`mongoimport`并不总是能反应真实的数据。只有`mongodump`和`mongorestore`可以用以真正的备份。
 
-### In This Chapter ###
-In this chapter we looked a various commands, tools and performance details of using MongoDB. We haven't touched on everything, but we've looked at the most common ones. Indexing in MongoDB is similar to indexing with relational databases, as are many of the tools. However, with MongoDB, many of these are to the point and simple to use.
+### 本章小结 ###
+在这章中我们看到了MongoDB的不同命令、工具以及性能方面的细节。并不是所有的东西都有介绍，我们只选了最常见的那些。MongoDB的索引和关系数据库中的索引很相像，其他的很多工具也是这样。但是，很多工具的使用在MongoDb中更简洁扼要。
 
 \clearpage
 
-## Conclusion ##
-You should have enough information to start using MongoDB in a real project. There's more to MongoDB than what we've covered, but your next priority should be putting together what we've learned, and getting familiar with the driver you'll be using. The [MongoDB website](http://www.mongodb.com/) has a lot of useful information. The official [MongoDB user group](http://groups.google.com/group/mongodb-user) is a great place to ask questions.
+## 总结 ##
+至此您对MongoDB的了解已经足以开始在实际项目中使用它了。关于MongoDB的远不止我们所介绍的这些，不过您需要做的下一件事应该是把在这里所学到的只是汇总起来，并熟悉您即将用到的驱动。MongoDb的[网站](http://www.mongodb.com/)有很多有用的信息。其[官方讨论组](http://groups.google.com/group/mongodb-user)则是一个问问题的好地方。
 
-NoSQL was born not only out of necessity, but also out of an interest to try new approaches. It is an acknowledgement that our field is ever advancing and that if we don't try, and sometimes fail, we can never succeed. This, I think, is a good way to lead our professional lives.
+NoSQL的诞生不仅仅因为有必要，同时也是为了实践新的方法。应该承认的是这个领域一直在向前发展，尽管有时候会失败，但是如果我们不去尝试，就拥有无法成功。我想，这应该是我们推动职业生涯的正确方法。
