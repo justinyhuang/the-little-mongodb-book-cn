@@ -32,7 +32,7 @@ Perry Neal，谢谢你给我无法衡量的帮助，谢谢你锐利的眼光、�
 <http://github.com/karlseguin/the-little-mongodb-book>.
 
 ### 关于本书的中文版本 ###
-本书的中文版由[justinyhuang](http://justinyhuang.com)完成，基于与原著相同的许可证。最新版本在xxxxxxxx。译文的纰漏欢迎告知<justin.y.huang@live.com>或直接提交github。
+本书的中文版由[justinyhuang](http://justinyhuang.com)完成，基于与原著相同的许可证。最新版本在[GitHub](https://github.com/justinyhuang/the-little-mongodb-book-cn)。译文的纰漏欢迎告知<justin.y.huang@live.com>或直接提交github。
 
 \clearpage
 
