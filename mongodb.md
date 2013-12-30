@@ -32,7 +32,7 @@ Perry Neal，谢谢你给我无法衡量的帮助，谢谢你锐利的眼光、�
 <http://github.com/karlseguin/the-little-mongodb-book>.
 
 ### 关于本书的中文版本 ###
-本书的中文版由[justinyhuang](http://justinyhuang.com)完成，基于与原著相同的许可证。最新版本在[GitHub](https://github.com/justinyhuang/the-little-mongodb-book-cn)。译文的纰漏欢迎告知<justin.y.huang@live.com>或直接提交github。
+本书的中文版由[justinyhuang](http://justinyhuang.com)完成，基于与原著相同的许可证。最新版本在[GitHub](https://github.com/justinyhuang/the-little-mongodb-book-cn)。译文的纰漏欢迎告知<yang.huang@ymail.com>或直接提交github。
 
 \clearpage
 
@@ -707,4 +707,4 @@ MongoDB的复制于关系数据库的复制类似。写入的数据发送到主�
 ## 总结 ##
 至此您对MongoDB的了解已经足以开始在实际项目中使用它了。关于MongoDB的远不止我们所介绍的这些，不过您需要做的下一件事应该是把在这里所学到的只是汇总起来，并熟悉您即将用到的驱动。MongoDb的[网站](http://www.mongodb.com/)有很多有用的信息。其[官方讨论组](http://groups.google.com/group/mongodb-user)则是一个问问题的好地方。
 
-NoSQL的诞生不仅仅因为有必要，同时也是为了实践新的方法。应该承认的是这个领域一直在向前发展，尽管有时候会失败，但是如果我们不去尝试，就拥有无法成功。我想，这应该是我们推动职业生涯的正确方法。
+NoSQL的诞生不仅仅因为有必要，同时也是为了实践新的方法。应该承认的是这个领域一直在向前发展，尽管有时候会失败，但是如果我们不去尝试，就无法拥抱成功。我想，这应该是我们推进职业生涯的正确方法。
