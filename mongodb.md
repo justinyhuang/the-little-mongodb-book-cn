@@ -183,7 +183,7 @@ MongoDB为`_id`域生成的`ObjectId`也是可以被选择的，就像这样：
 \clearpage
 
 ## 第二章 - 更新 ##
-在第一章中我们介绍了CRUD（Copy、Read、Update、Delete）中的三个操作。本章专门用来介绍前面跳过的第四个操作：`update`。`update`有一些出人意料的行为，这就是为什么我们专门在这章当中讨论它。
+在第一章中我们介绍了CRUD（Create、Read、Update、Delete）中的三个操作。本章专门用来介绍前面跳过的第四个操作：`update`。`update`有一些出人意料的行为，这就是为什么我们专门在这章当中讨论它。
 
 ### update: replace 与 $set ###
 `update`最简单的执行方式有两个参数：一个是选择器(选择更新的范围)，一个是需要更新的域。如果Roooooodles长胖了，我们就需要：
