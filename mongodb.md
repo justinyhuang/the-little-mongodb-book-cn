@@ -274,14 +274,14 @@ MongoDB网站上的[Updating](http://www.mongodb.org/display/DOCS/Updating)部�
 
 	//最重的独角兽排在第一
 	db.unicorns.find().sort({weight: -1})
-
+	
 	//优先按名字排序再按吸血技能排序
 	db.unicorns.find().sort({name: 1, vampires: -1})
 
 如同关系数据库，MongoDB也可以利用索引进行排序。我们会在后面再详细讨论索引。只是您要知道，当没有建立索引时，MongoDB是限制排序对象大小的（译者：目前是16MB）。也就是说，如果您尝试对一个大规模的结果的集进行排序，而又没有为这个结果建立索引，那么就会看到错误的提示。对一些人来说，这是MongoDB的局限性。但是说实话，我真希望更多的数据库能够像MongoDB那样拒绝执行那些未经优化的查询。（我倒不是要把每个MongoDB的缺点都硬掰成优点，只是我见过太多缺乏优化的数据库了，所以我真的很希望它们能有一个`严格模式`以限制未经优化的查询。）
 
 ### 分页（paging） ###
-对结果的分页可以通过`limit`以及`skip`这两个游标操作来实现。比如可以用一下的命令来得到第二，第三重的独角兽：
+对结果的分页可以通过`limit`以及`skip`这两个游标操作来实现。比如可以用以下的命令来得到第二，第三重的独角兽：
 
 	db.unicorns.find().sort({weight: -1}).limit(2).skip(1)
 
@@ -578,7 +578,7 @@ MongoDB中是对集合使用`mapReduce`的。`mapReduce`需要一个映射函数
 		var key = {resource: this.resource, year: this.date.getFullYear(), month: this.date.getMonth(), day: this.date.getDate()};
 		emit(key, {count: 1});
 	};
-
+	
 	var reduce = function(key, values) {
 		var sum = 0;
 		values.forEach(function(value) {
