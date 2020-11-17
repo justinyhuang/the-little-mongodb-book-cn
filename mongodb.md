@@ -331,7 +331,7 @@ MongoDB没有连接并不意味着它没有其他的优势。还记得我们曾�
 
 	db.employees.insert({_id: ObjectId("4d85c7039ab0fd70a117d733"), name: 'Siona', manager: [ObjectId("4d85c7039ab0fd70a117d730"), ObjectId("4d85c7039ab0fd70a117d732")] })
 
-需要注意的是，在这种情况下，有些文档中的`manager`可能是一个向量，而其他的却是数组。在两种情况下，前面的`find`还是一样可以工作：
+需要注意的是，在这种情况下，有些文档中的`manager`可能是一个标量，而其他的却是数组。在两种情况下，前面的`find`还是一样可以工作：
 
 	db.employees.find({manager: ObjectId("4d85c7039ab0fd70a117d730")})
 
